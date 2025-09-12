@@ -685,8 +685,6 @@ export default class Overlay {
    * @since 0.58.4
    */
   handleDisplayStatus(text) {
-    const consoleInfo = console.info; // Creates a copy of the console.info function
-    consoleInfo(`${this.name}: ${text}`); // Outputs something like "ScriptName: text" as an info message to the console
     this.updateInnerHTML(this.outputStatusId, 'Status: ' + text, true); // Update output Status box
   }
 
