@@ -71,12 +71,6 @@ inject(() => {
 
     const elapsed = Date.now() - blink;
 
-    // Since this code does not run in the userscript, we can't use consoleLog().
-    console.groupCollapsed(`%c${name}%c: ${fetchedBlobQueue.size} Recieved IMAGE message about blob "${blobID}"`, consoleStyle, '');
-    // console.log(`Blob fetch took %c${String(Math.floor(elapsed/60000)).padStart(2,'0')}:${String(Math.floor(elapsed/1000) % 60).padStart(2,'0')}.${String(elapsed % 1000).padStart(3,'0')}%c MM:SS.mmm`, consoleStyle, '');
-    // console.log(fetchedBlobQueue);
-    console.groupEnd();
-
     // The modified blob won't have an endpoint, so we ignore any message without one.
     if ((source == 'blue-marble') && !!blobID && !!blobData && !endpoint) {
 
@@ -112,10 +106,6 @@ inject(() => {
     const contentType = cloned.headers.get('content-type') || '';
     if (contentType.includes('application/json')) {
 
-
-      // Since this code does not run in the userscript, we can't use consoleLog().
-      // console.log(`%c${name}%c: Sending JSON message about endpoint "${endpointName}"`, consoleStyle, '');
-
       // Sends a message about the endpoint it spied on
       cloned.json()
         .then(jsonData => {
@@ -135,9 +125,6 @@ inject(() => {
 
       const blob = await cloned.blob(); // The original blob
 
-      // Since this code does not run in the userscript, we can't use consoleLog().
-      // console.log(`%c${name}%c: ${fetchedBlobQueue.size} Sending IMAGE message about endpoint "${endpointName}"`, consoleStyle, '');
-
       // Returns the manipulated blob
       return new Promise((resolve) => {
         const blobUUID = crypto.randomUUID(); // Generates a random UUID
@@ -152,9 +139,6 @@ inject(() => {
             status: cloned.status,
             statusText: cloned.statusText
           }));
-
-          // Since this code does not run in the userscript, we can't use consoleLog().
-          console.log(`%c${name}%c: ${fetchedBlobQueue.size} Processed blob "${blobUUID}"`, consoleStyle, '');
         });
 
         window.postMessage({
@@ -166,20 +150,7 @@ inject(() => {
         });
       }).catch(exception => {
         const elapsed = Date.now();
-        console.error(`%c${name}%c: Failed to Promise blob!`, consoleStyle, '');
-        console.groupCollapsed(`%c${name}%c: Details of failed blob Promise:`, consoleStyle, '');
-        console.log(`Endpoint: ${endpointName}\nThere are ${fetchedBlobQueue.size} blobs processing...\nBlink: ${blink.toLocaleString()}\nTime Since Blink: ${String(Math.floor(elapsed/60000)).padStart(2,'0')}:${String(Math.floor(elapsed/1000) % 60).padStart(2,'0')}.${String(elapsed % 1000).padStart(3,'0')} MM:SS.mmm`);
-        console.error(`Exception stack:`, exception);
-        console.groupEnd();
       });
-
-      // cloned.blob().then(blob => {
-      //   window.postMessage({
-      //     source: 'blue-marble',
-      //     endpoint: endpointName,
-      //     blobData: blob
-      //   }, '*');
-      // });
     }
 
     return response; // Returns the original response
@@ -603,8 +574,6 @@ async function loadTemplates() {
   let storageTemplates = {};
   let storageSource = 'none';
   
-  console.log('📂 Loading templates from storage...');
-  
   // Try TamperMonkey storage first with enhanced error handling
   try {
     if (typeof GM !== 'undefined' && GM.getValue) {
@@ -613,7 +582,6 @@ async function loadTemplates() {
       let data;
       
       if (chunkCount > 0) {
-        console.log(`📦 Loading ${chunkCount} TM chunks...`);
         // Load chunked data with validation
         let combinedData = '';
         let corruptedChunks = 0;
@@ -622,7 +590,6 @@ async function loadTemplates() {
           const chunk = await GM.getValue(`bmTemplates_part_${i}`, '');
           if (!chunk) {
             corruptedChunks++;
-            console.error(`❌ Missing TM chunk ${i}/${chunkCount}`);
           } else {
             combinedData += chunk;
           }
@@ -633,11 +600,9 @@ async function loadTemplates() {
         }
         
         data = combinedData;
-        console.log(`✅ TM chunked data loaded: ${data.length} chars`);
       } else {
         // Load regular single data
         data = await GM.getValue('bmTemplates', '{}');
-        console.log(`📄 TM single data loaded: ${data.length} chars`);
       }
       
       // Validate JSON before parsing
@@ -655,9 +620,7 @@ async function loadTemplates() {
             storageTemplates.templates = {};
           }
           storageSource = 'TamperMonkey (async)';
-          console.log(`✅ TM templates loaded: ${Object.keys(storageTemplates.templates || {}).length} templates`);
         } catch (parseError) {
-          console.error('❌ TM JSON parse failed:', parseError);
           throw parseError;
         }
       }
@@ -667,7 +630,6 @@ async function loadTemplates() {
       let data;
       
       if (chunkCount > 0) {
-        console.log(`📦 Loading ${chunkCount} TM legacy chunks...`);
         // Load chunked data with validation
         let combinedData = '';
         let corruptedChunks = 0;
@@ -676,7 +638,6 @@ async function loadTemplates() {
           const chunk = GM_getValue(`bmTemplates_part_${i}`, '');
           if (!chunk) {
             corruptedChunks++;
-            console.error(`❌ Missing TM legacy chunk ${i}/${chunkCount}`);
           } else {
             combinedData += chunk;
           }
@@ -687,11 +648,9 @@ async function loadTemplates() {
         }
         
         data = combinedData;
-        console.log(`✅ TM legacy chunked data loaded: ${data.length} chars`);
       } else {
         // Load regular single data
         data = GM_getValue('bmTemplates', '{}');
-        console.log(`📄 TM legacy single data loaded: ${data.length} chars`);
       }
       
       // Validate JSON before parsing
@@ -709,24 +668,19 @@ async function loadTemplates() {
             storageTemplates.templates = {};
           }
           storageSource = 'TamperMonkey (legacy)';
-          console.log(`✅ TM legacy templates loaded: ${Object.keys(storageTemplates.templates || {}).length} templates`);
         } catch (parseError) {
-          console.error('❌ TM legacy JSON parse failed:', parseError);
           throw parseError;
         }
       }
     }
   } catch (error) {
-    console.error('❌ TamperMonkey storage load failed:', error);
     
     // Fallback to localStorage with enhanced error handling
     try {
-      console.log('🔄 Falling back to localStorage...');
       const lsChunkCount = parseInt(localStorage.getItem('bmTemplates_chunkCount') || '0');
       let data;
       
       if (lsChunkCount > 0) {
-        console.log(`📦 Loading ${lsChunkCount} LS chunks...`);
         // Load chunked data with validation
         let combinedData = '';
         let corruptedChunks = 0;
@@ -735,7 +689,6 @@ async function loadTemplates() {
           const chunk = localStorage.getItem(`bmTemplates_part_${i}`) || '';
           if (!chunk) {
             corruptedChunks++;
-            console.error(`❌ Missing LS chunk ${i}/${lsChunkCount}`);
           } else {
             combinedData += chunk;
           }
@@ -746,10 +699,8 @@ async function loadTemplates() {
         }
         
         data = combinedData;
-        console.log(`✅ LS chunked data loaded: ${data.length} chars`);
       } else {
         data = localStorage.getItem('bmTemplates') || '{}';
-        console.log(`📄 LS single data loaded: ${data.length} chars`);
       }
       
       // Validate JSON before parsing
@@ -767,23 +718,16 @@ async function loadTemplates() {
             storageTemplates.templates = {};
           }
           storageSource = 'localStorage (fallback)';
-          console.log(`✅ LS templates loaded: ${Object.keys(storageTemplates.templates || {}).length} templates`);
         } catch (parseError) {
-          console.error('❌ LS JSON parse failed:', parseError);
           throw parseError;
         }
       }
     } catch (fallbackError) {
-      console.error('❌ All storage methods failed:', fallbackError);
-      
-      // Last resort: try to salvage any valid data
-      console.log('🆘 Attempting emergency data recovery...');
       try {
         await attemptEmergencyRecovery();
         storageTemplates = {};
         storageSource = 'emergency recovery (empty)';
       } catch (recoveryError) {
-        console.error('❌ Emergency recovery failed:', recoveryError);
         storageTemplates = {};
         storageSource = 'empty (all failed)';
       }
@@ -794,7 +738,6 @@ async function loadTemplates() {
   const templateCount = Object.keys(storageTemplates?.templates || {}).length;
   
   if (templateCount === 0 && storageSource !== 'empty (all failed)') {
-    console.warn('⚠️ No templates found but storage source was available');
     
     // Try to recover from backup or alternative storage
     try {
@@ -825,26 +768,16 @@ async function loadTemplates() {
         templateManager.updateTemplateWithColorFilter().catch(e => console.warn('Template color filter update failed:', e));
       }
     } catch (recoveryError) {
-      console.error('❌ Recovery failed:', recoveryError);
     }
   }
   
   // Enhanced template loading with recovery
   try {
     templateManager.importJSON(storageTemplates); // Loads the templates
-    console.log(`✅ Templates imported successfully from ${storageSource}`);
-    
-    if (templateCount === 0) {
-      consoleLog('ℹ️ No templates loaded - start by creating a new template');
-    } else {
-      consoleLog(`📚 Loaded ${templateCount} templates from ${storageSource}`);
-    }
   } catch (importError) {
-    console.error('❌ Template import failed:', importError);
     
     // Try to recover by creating fresh template structure
     try {
-      console.log('🆘 Attempting template recovery...');
       const freshTemplates = {
         whoami: 'BlueMarble',
         scriptVersion: '0.89.6',
@@ -856,9 +789,7 @@ async function loadTemplates() {
       };
       
       templateManager.importJSON(freshTemplates);
-      console.log('✅ Template recovery successful - fresh start');
     } catch (recoveryError) {
-      console.error('❌ Template recovery failed:', recoveryError);
       throw recoveryError;
     }
   }
@@ -866,7 +797,6 @@ async function loadTemplates() {
 
 // Emergency data recovery function
 async function attemptEmergencyRecovery() {
-  console.log('🆘 Starting emergency data recovery...');
   
   // Clean up any corrupted storage keys
   try {
@@ -894,8 +824,6 @@ async function attemptEmergencyRecovery() {
       try { localStorage.removeItem(`bmTemplates_part_${i}`); } catch (_) {}
     }
     
-    console.log('✅ Emergency cleanup completed');
-    
   } catch (e) {
     console.error('❌ Emergency cleanup failed:', e);
     throw e;
@@ -905,7 +833,6 @@ async function attemptEmergencyRecovery() {
 // Storage migration and validation - FIXED CRITICAL BUG
 async function migrateAndValidateStorage() {
   try {
-    console.log('🔄 Starting storage migration and validation...');
     
     // Check if we have data in both storages
     let tmData = null;
@@ -921,7 +848,6 @@ async function migrateAndValidateStorage() {
         // Check if data is chunked
         const chunkCount = await GM.getValue('bmTemplates_chunkCount', 0);
         if (chunkCount > 0) {
-          console.log(`📦 Loading ${chunkCount} TM chunks...`);
           // Load chunked data with validation
           let combinedData = '';
           let missingChunks = 0;
@@ -930,7 +856,6 @@ async function migrateAndValidateStorage() {
             const chunk = await GM.getValue(`bmTemplates_part_${i}`, '');
             if (!chunk) {
               missingChunks++;
-              console.warn(`⚠️ Missing TM chunk ${i}/${chunkCount}`);
             } else {
               combinedData += chunk;
             }
@@ -942,18 +867,15 @@ async function migrateAndValidateStorage() {
           } else {
             tmData = combinedData;
             tmChunked = true;
-            console.log(`✅ TM chunked data loaded: ${combinedData.length} chars`);
           }
         } else {
           tmData = await GM.getValue('bmTemplates', null);
-          console.log(`📄 TM single data loaded: ${tmData ? tmData.length : 0} chars`);
         }
         tmTimestamp = await GM.getValue('bmTemplates_timestamp', 0);
       } else if (typeof GM_getValue !== 'undefined') {
         // Check if data is chunked (legacy)
         const chunkCount = GM_getValue('bmTemplates_chunkCount', 0);
         if (chunkCount > 0) {
-          console.log(`📦 Loading ${chunkCount} TM legacy chunks...`);
           // Load chunked data with validation
           let combinedData = '';
           let missingChunks = 0;
@@ -974,11 +896,9 @@ async function migrateAndValidateStorage() {
           } else {
             tmData = combinedData;
             tmChunked = true;
-            console.log(`✅ TM legacy chunked data loaded: ${combinedData.length} chars`);
           }
         } else {
           tmData = GM_getValue('bmTemplates', null);
-          console.log(`📄 TM legacy single data loaded: ${tmData ? tmData.length : 0} chars`);
         }
         tmTimestamp = GM_getValue('bmTemplates_timestamp', 0);
       }
@@ -991,7 +911,6 @@ async function migrateAndValidateStorage() {
     try {
       const lsChunkCount = parseInt(localStorage.getItem('bmTemplates_chunkCount') || '0');
       if (lsChunkCount > 0) {
-        console.log(`📦 Loading ${lsChunkCount} LS chunks...`);
         // Load chunked data with validation
         let combinedData = '';
         let missingChunks = 0;
@@ -1012,11 +931,9 @@ async function migrateAndValidateStorage() {
         } else {
           lsData = combinedData;
           lsChunked = true;
-          console.log(`✅ LS chunked data loaded: ${combinedData.length} chars`);
         }
       } else {
         lsData = localStorage.getItem('bmTemplates');
-        console.log(`📄 LS single data loaded: ${lsData ? lsData.length : 0} chars`);
       }
       lsTimestamp = parseInt(localStorage.getItem('bmTemplates_timestamp') || '0');
     } catch (e) { 
@@ -1033,7 +950,6 @@ async function migrateAndValidateStorage() {
         const parsed = JSON.parse(tmData);
         if (parsed && typeof parsed === 'object' && parsed.templates) {
           tmValid = true;
-          console.log(`✅ TM data is valid JSON with ${Object.keys(parsed.templates).length} templates`);
         } else {
           console.warn('⚠️ TM data is not a valid template structure');
         }
@@ -1048,7 +964,6 @@ async function migrateAndValidateStorage() {
         const parsed = JSON.parse(lsData);
         if (parsed && typeof parsed === 'object' && parsed.templates) {
           lsValid = true;
-          console.log(`✅ LS data is valid JSON with ${Object.keys(parsed.templates).length} templates`);
         } else {
           console.warn('⚠️ LS data is not a valid template structure');
         }
@@ -1075,11 +990,8 @@ async function migrateAndValidateStorage() {
     
     // If we have valid data in both, use the most recent
     if (tmValid && lsValid && tmTimestamp !== lsTimestamp) {
-      console.log(`🔄 Data sync: TM(${new Date(tmTimestamp).toLocaleString()}) vs LS(${new Date(lsTimestamp).toLocaleString()})`);
       
       if (tmTimestamp > lsTimestamp) {
-        // TamperMonkey is newer, update localStorage
-        console.log('📤 Syncing TM → LS...');
         try {
           if (tmData.length > 900000) {
             // Store as chunks in LS
@@ -1094,13 +1006,10 @@ async function migrateAndValidateStorage() {
             }
             localStorage.removeItem('bmTemplates_chunkCount');
           }
-          console.log('✅ LS updated from TM');
         } catch (e) {
           console.error('❌ Failed to sync TM → LS:', e);
         }
       } else if (lsTimestamp > tmTimestamp) {
-        // localStorage is newer, update TamperMonkey
-        console.log('📤 Syncing LS → TM...');
         try {
           if (typeof GM !== 'undefined' && GM.setValue) {
             if (lsData.length > 900000) {
@@ -1120,14 +1029,11 @@ async function migrateAndValidateStorage() {
             GM_setValue('bmTemplates', lsData);
             GM_setValue('bmTemplates_timestamp', lsTimestamp);
           }
-          console.log('✅ TM updated from LS');
         } catch (e) {
           console.error('❌ Failed to sync LS → TM:', e);
         }
       }
     }
-    
-    console.log('✅ Storage migration completed');
     
   } catch (error) {
     console.error('❌ Storage migration failed:', error);
@@ -1156,7 +1062,6 @@ async function cleanupCorruptedStorage(storageType) {
       }
       try { localStorage.removeItem('bmTemplates_chunkCount'); } catch (_) {}
     }
-    console.log(`🧹 Cleaned up corrupted ${storageType.toUpperCase()} storage`);
   } catch (e) {
     console.error(`❌ Failed to cleanup ${storageType.toUpperCase()} storage:`, e);
   }
@@ -1238,8 +1143,6 @@ if (!document.getElementById('bm-fullcharge-styles')) {
   `;
   document.head.appendChild(style);
 }
-
-consoleLog(`%c${name}%c (${version}) userscript has loaded!`, 'color: cornflowerblue;', '');
 
 /** Observe the black color, and add the "Move" button.
  * @since 0.66.3
@@ -1439,7 +1342,6 @@ function performDeleteAllTemplates(instance, templateCount, templateText) {
     }
     
     instance.handleDisplayStatus(`Successfully deleted all ${templateCount} ${templateText}!`);
-    consoleLog(`🗑️ Deleted all ${templateCount} templates from storage`);
     
   } catch (error) {
     consoleError('❌ Failed to delete templates:', error);
@@ -2270,7 +2172,6 @@ function deleteSelectedTemplate(instance) {
             document.body.removeChild(overlay);
             
             instance.handleDisplayStatus(`Successfully deleted template "${templateName}"!`);
-            consoleLog(`🗑️ Deleted template: ${templateName} (${templateKey})`);
             } else {
               throw new Error('Delete operation returned false');
             }
@@ -3148,7 +3049,6 @@ function showTemplateManageDialog(instance) {
               templateItem.remove();
               
               instance.handleDisplayStatus(`Successfully deleted template "${templateName}"!`);
-              consoleLog(`🗑️ Deleted template: ${templateName} (${templateKey})`);
               
               // Check if there are no more templates left
               const remainingTemplates = templateList.children.length;
@@ -3649,12 +3549,7 @@ function buildOverlayMain() {
             // Update mini tracker after template creation
             setTimeout(() => updateMiniTracker(), 500);
 
-            // console.log(`TCoords: ${apiManager.templateCoordsTilePixel}\nCoords: ${apiManager.coordsTilePixel}`);
-            // apiManager.templateCoordsTilePixel = apiManager.coordsTilePixel; // Update template coords
-            // console.log(`TCoords: ${apiManager.templateCoordsTilePixel}\nCoords: ${apiManager.coordsTilePixel}`);
-            // templateManager.setTemplateImage(input.files[0]);
-
-                      instance.handleDisplayStatus(`Drew to canvas!`);
+            instance.handleDisplayStatus(`Drew to canvas!`);
         }
       }).buildElement()
       .addButton({'id': 'bm-button-manage', innerHTML: icons.manageIcon + 'Manage'}, (instance, button) => {
@@ -3905,20 +3800,15 @@ function buildColorFilterOverlay() {
     existingOverlay.remove();
   }
 
-  consoleLog('🎯 [Color Filter] Starting color filter overlay build...');
-
   // Check if mobile mode is enabled
   const isMobileMode = getMobileMode();
-  consoleLog(`📱 [Color Filter] Mobile mode: ${isMobileMode ? 'enabled' : 'disabled'}`);
 
   // Import the color palette from utils
   import('./utils.js').then(utils => {
     const colorPalette = utils.colorpalette;
     
     // Get enhanced pixel analysis data
-    consoleLog('🎯 [Color Filter] Calculating pixel statistics...');
     const pixelStats = templateManager.calculateRemainingPixelsByColor(0, true); // Only enabled templates
-    consoleLog('🎯 [Color Filter] Pixel statistics received:', pixelStats);
     // Update native palette badges as well (if settings enabled)
     try {
       updatePaletteLeftBadges(pixelStats);
@@ -3990,7 +3880,6 @@ function buildColorFilterOverlay() {
     for (const [colorKey, stats] of Object.entries(pixelStats)) {
       // Skip excluded colors from progress calculation
       if (excludedColors.includes(colorKey)) {
-        consoleLog(`🚫 [Color Filter] Excluding color ${colorKey} from progress calculation`);
         continue;
       }
       
@@ -4008,13 +3897,11 @@ function buildColorFilterOverlay() {
       displayPainted = totalPainted;
       displayRequired = totalRequired;
       overallProgress = displayRequired > 0 ? Math.round((displayPainted / displayRequired) * 100) : 0;
-      consoleLog(`🎯 [Color Filter] Overall progress (including wrong): ${displayPainted}/${displayRequired} (${overallProgress}%) - ${totalNeedCrosshair} need crosshair, ${totalWrong} wrong already included`);
     } else {
       // Standard calculation (exclude wrong colors)
       displayPainted = totalPainted;
       displayRequired = totalRequired;
       overallProgress = displayRequired > 0 ? Math.round((displayPainted / displayRequired) * 100) : 0;
-      consoleLog(`🎯 [Color Filter] Overall progress: ${displayPainted}/${displayRequired} (${overallProgress}%) - ${totalNeedCrosshair} need crosshair, ${totalWrong} wrong excluded`);
     }
     
     // Inject compact modern styles for Color Filter UI (once)
@@ -5313,15 +5200,12 @@ function buildColorFilterOverlay() {
         progressTrack.appendChild(progressFill);
         colorItem.appendChild(progressTrack);
         
-        consoleLog(`🎯 [Color Filter] Displaying stats for ${colorInfo.name} (${colorKey}): ${displayPainted}/${displayRequired} (${displayPercentage}%) - ${displayRemaining} need crosshair${wrongPixelsForColor > 0 ? ` - includes ${wrongPixelsForColor} wrong` : ''}`);
       } else {
         pixelStatsDisplay.innerHTML = `
           <div style="font-size: 0.65em; color: rgba(255,255,255,0.6); text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">
             Not Used
           </div>
         `;
-        
-        consoleLog(`🎯 [Color Filter] Color ${colorInfo.name} (${colorKey}) not used in template`);
       }
       
       pixelStatsDisplay.style.cssText = `
@@ -6050,7 +5934,6 @@ function buildColorFilterOverlay() {
     };
     
     refreshStatsButton.onclick = () => {
-      consoleLog('🔄 [Color Filter] Refreshing statistics...');
       // Apply pending excluded colors changes
       const pendingExcluded = localStorage.getItem('bmcf-excluded-colors-pending');
       if (pendingExcluded) {
@@ -7314,11 +7197,6 @@ function buildColorFilterOverlay() {
 
     // Apply or remove mobile mode styles based on current setting
     applyMobileModeToColorFilter(!!isMobileMode);
-    if (isMobileMode) {
-      consoleLog('📱 [Initial Build] Mobile mode applied immediately');
-    } else {
-      consoleLog('📱 [Initial Build] Mobile mode is OFF - ensuring desktop styles');
-    }
 
     // Add drag functionality
     let isDragging = false;
@@ -7559,7 +7437,6 @@ let eKeyModeActive = false;
  * @since 1.0.0
  */
 function initializeKeyboardShortcuts() {
-  consoleLog('🎹 [Keyboard Shortcuts] Initializing X+Click shortcut for enhanced colors...');
   
   // Track X key press/release
   document.addEventListener('keydown', (event) => {
@@ -7574,8 +7451,6 @@ function initializeKeyboardShortcuts() {
       if (typeof overlayMain !== 'undefined' && overlayMain.handleDisplayStatus) {
         overlayMain.handleDisplayStatus('🎹 X-Mode: Click a color to enable enhanced mode for that color only');
       }
-      
-      consoleLog('🎹 [X-Mode] Enhanced selection mode ACTIVATED');
     }
   });
   
@@ -7586,15 +7461,11 @@ function initializeKeyboardShortcuts() {
       
       // Reset cursor
       document.body.style.cursor = '';
-      
-      consoleLog('🎹 [X-Mode] Enhanced selection mode DEACTIVATED');
     }
   });
   
   // Handle clicks on color palette buttons when X is pressed
   document.addEventListener('click', handleEKeyColorClick, true);
-  
-  consoleLog('✅ [Keyboard Shortcuts] X+Click shortcut initialized successfully');
 }
 
 /** Handle X+Click on color palette */
@@ -7625,8 +7496,6 @@ function handleEKeyColorClick(event) {
     return;
   }
   
-  consoleLog(`🎹 [X-Mode] Processing color: ${colorId} -> RGB(${rgbColor.join(', ')})`);
-  
   // Get current template
   const currentTemplate = templateManager.templatesArray?.[0];
   if (!currentTemplate) {
@@ -7639,11 +7508,9 @@ function handleEKeyColorClick(event) {
   try {
     // Clear all enhanced colors first
     currentTemplate.enhancedColors.clear();
-    consoleLog('🎹 [X-Mode] Cleared all enhanced colors');
     
     // Enable enhanced mode for the selected color
     currentTemplate.enableColorEnhanced(rgbColor);
-    consoleLog(`🎹 [X-Mode] Enhanced mode enabled for RGB(${rgbColor.join(', ')})`);
     
     // Visual feedback
     const colorName = colorButton.getAttribute('aria-label') || colorId;
@@ -7653,7 +7520,6 @@ function handleEKeyColorClick(event) {
     
     // Refresh template to apply changes
     refreshTemplateDisplay().then(() => {
-      consoleLog('🎹 [X-Mode] Template refreshed with new enhanced color');
     }).catch(error => {
       consoleError('🎹 [X-Mode] Error refreshing template:', error);
     });
@@ -7709,7 +7575,6 @@ function saveErrorMapEnabled(enabled) {
       GM_setValue('bmErrorMap', enabledString);
     }
     localStorage.setItem('bmErrorMap', enabledString);
-    consoleLog('✅ Error map setting saved:', enabled);
   } catch (error) {
     consoleError('❌ Failed to save error map setting:', error);
   }
@@ -7787,11 +7652,9 @@ async function refreshTemplateDisplay() {
   if (templateManager.templatesArray && templateManager.templatesArray.length > 0) {
     // Force a complete recreation of the template with current color filter
     try {
-      consoleLog('Starting template refresh with color filter...');
       
       // Get the current template
       const currentTemplate = templateManager.templatesArray[0];
-      consoleLog('Current disabled colors:', currentTemplate.getDisabledColors());
       
       // Invalidate enhanced cache when colors change
       currentTemplate.invalidateEnhancedCache();
@@ -7803,13 +7666,10 @@ async function refreshTemplateDisplay() {
       await new Promise(resolve => setTimeout(resolve, 50));
       
       // Force recreation of template tiles with current color filter
-      consoleLog('Recreating template tiles with color filter...');
       await templateManager.updateTemplateWithColorFilter(0);
       
       // Re-enable templates to show the updated version
       templateManager.setTemplatesShouldBeDrawn(true);
-      
-      consoleLog('Template refresh completed successfully');
       
     } catch (error) {
       consoleError('Error refreshing template display:', error);
@@ -7848,7 +7708,6 @@ function getCrosshairColor() {
     if (savedColor && savedColor.alpha === 180) {
       savedColor.alpha = 255;
       saveCrosshairColor(savedColor); // Save the migrated value
-      consoleLog('Auto-migrated crosshair transparency from 71% to 100%');
     }
     
     if (savedColor) return savedColor;
@@ -7879,8 +7738,6 @@ function saveCrosshairColor(colorConfig) {
     
     // Also save to localStorage as backup
     localStorage.setItem('bmCrosshairColor', colorString);
-    
-    consoleLog('Crosshair color saved:', colorConfig);
   } catch (error) {
     consoleError('Failed to save crosshair color:', error);
   }
@@ -7907,15 +7764,11 @@ function getBorderEnabled() {
     }
     
     if (borderEnabled !== null) {
-      consoleLog('🔲 Border setting loaded:', borderEnabled);
       return borderEnabled;
     }
   } catch (error) {
     consoleWarn('Failed to load border setting:', error);
   }
-  
-  // Default to disabled
-  consoleLog('🔲 Using default border setting: false');
   return false;
 }
 
@@ -7927,19 +7780,13 @@ function saveBorderEnabled(enabled) {
   try {
     const enabledString = JSON.stringify(enabled);
     
-    consoleLog('🔲 Saving border setting:', enabled, 'as string:', enabledString);
-    
     // Save to TamperMonkey storage
     if (typeof GM_setValue !== 'undefined') {
       GM_setValue('bmCrosshairBorder', enabledString);
-      consoleLog('🔲 Saved to TamperMonkey storage');
     }
     
     // Also save to localStorage as backup
     localStorage.setItem('bmCrosshairBorder', enabledString);
-    consoleLog('🔲 Saved to localStorage');
-    
-    consoleLog('✅ Border setting saved successfully:', enabled);
   } catch (error) {
     consoleError('❌ Failed to save border setting:', error);
   }
@@ -7995,8 +7842,6 @@ function saveEnhancedSizeEnabled(enabled) {
     
     // Also save to localStorage as backup
     localStorage.setItem('bmCrosshairEnhancedSize', enabledString);
-    
-    consoleLog('✅ Enhanced size setting saved successfully:', enabled);
   } catch (error) {
     consoleError('❌ Failed to save enhanced size setting:', error);
   }
@@ -8054,8 +7899,6 @@ function saveCrosshairRadius(radius) {
     
     // Also save to localStorage as backup
     localStorage.setItem('bmCrosshairRadius', radiusString);
-    
-    consoleLog('✅ Crosshair radius setting saved successfully:', clampedRadius);
   } catch (error) {
     consoleError('❌ Failed to save crosshair radius setting:', error);
   }
@@ -8082,7 +7925,6 @@ function getMiniTrackerEnabled() {
     }
     
     if (trackerEnabled !== null) {
-      consoleLog('📊 Mini tracker setting loaded:', trackerEnabled);
       return trackerEnabled;
     }
   } catch (error) {
@@ -8101,19 +7943,13 @@ function saveMiniTrackerEnabled(enabled) {
   try {
     const enabledString = JSON.stringify(enabled);
     
-    consoleLog('📊 Saving mini tracker setting:', enabled, 'as string:', enabledString);
-    
     // Save to TamperMonkey storage
     if (typeof GM_setValue !== 'undefined') {
       GM_setValue('bmMiniTracker', enabledString);
-      consoleLog('📊 Saved to TamperMonkey storage');
     }
     
     // Also save to localStorage as backup
     localStorage.setItem('bmMiniTracker', enabledString);
-    consoleLog('📊 Saved to localStorage');
-    
-    consoleLog('✅ Mini tracker setting saved successfully:', enabled);
   } catch (error) {
     consoleError('❌ Failed to save mini tracker setting:', error);
   }
@@ -8140,7 +7976,6 @@ function getCollapseMinEnabled() {
     }
     
     if (collapseEnabled !== null) {
-      consoleLog('📊 Collapse mini template setting loaded:', collapseEnabled);
       return collapseEnabled;
     }
   } catch (error) {
@@ -8159,19 +7994,13 @@ function saveCollapseMinEnabled(enabled) {
   try {
     const enabledString = JSON.stringify(enabled);
     
-    consoleLog('📊 Saving collapse mini template setting:', enabled, 'as string:', enabledString);
-    
     // Save to TamperMonkey storage
     if (typeof GM_setValue !== 'undefined') {
       GM_setValue('bmCollapseMin', enabledString);
-      consoleLog('📊 Saved to TamperMonkey storage');
     }
     
     // Also save to localStorage as backup
     localStorage.setItem('bmCollapseMin', enabledString);
-    consoleLog('📊 Saved to localStorage');
-    
-    consoleLog('✅ Collapse mini template setting saved successfully:', enabled);
   } catch (error) {
     consoleError('❌ Failed to save collapse mini template setting:', error);
   }
@@ -8183,10 +8012,8 @@ function saveCollapseMinEnabled(enabled) {
  */
 function getMobileMode() {
   try {
-    consoleLog('📱 Loading mobile mode setting...');
     const storedValue = localStorage.getItem('bmMobileMode') || 'false';
     const mobileMode = JSON.parse(storedValue);
-    consoleLog('✅ Mobile mode setting loaded:', mobileMode);
     return mobileMode;
   } catch (error) {
     consoleError('❌ Failed to load mobile mode setting:', error);
@@ -8209,7 +8036,6 @@ function getShowLeftOnColorEnabled() {
       if (saved !== null) enabled = JSON.parse(saved);
     }
     if (enabled !== null) {
-      consoleLog('🔢 Show Left-on-Color setting loaded:', enabled);
       return enabled;
     }
   } catch (error) {
@@ -8228,7 +8054,6 @@ function saveShowLeftOnColorEnabled(enabled) {
       GM_setValue('bmShowLeftOnColor', enabledString);
     }
     localStorage.setItem('bmShowLeftOnColor', enabledString);
-    consoleLog('✅ Show Left-on-Color setting saved:', enabled);
     
     // Restart the left badges auto-update system with the new setting
     startLeftBadgesAutoUpdate();
@@ -8244,9 +8069,7 @@ function saveShowLeftOnColorEnabled(enabled) {
 function saveMobileMode(enabled) {
   try {
     const enabledString = JSON.stringify(enabled);
-    consoleLog('📱 Saving mobile mode setting:', enabled);
     localStorage.setItem('bmMobileMode', enabledString);
-    consoleLog('✅ Mobile mode setting saved successfully:', enabled);
   } catch (error) {
     consoleError('❌ Failed to save mobile mode setting:', error);
   }
@@ -8260,7 +8083,6 @@ function saveMobileMode(enabled) {
 function applyMobileModeToColorFilter(enableMobile) {
   const existingOverlay = document.getElementById('bm-color-filter-overlay');
   if (!existingOverlay) {
-    consoleLog('📱 [Dynamic Mobile] No Color Filter overlay found');
     return;
   }
 
@@ -8268,7 +8090,6 @@ function applyMobileModeToColorFilter(enableMobile) {
   let mobileStyleElement = document.getElementById('bmcf-mobile-styles');
   if (mobileStyleElement) {
     mobileStyleElement.remove();
-    consoleLog('📱 [Dynamic Mobile] Removed existing mobile styles');
   }
   
   if (enableMobile) {
@@ -8388,9 +8209,6 @@ function applyMobileModeToColorFilter(enableMobile) {
         height: 24px !important; 
       }
     `;
-    consoleLog('📱 [Dynamic Mobile] Mobile mode styles applied FRESH to Color Filter');
-  } else {
-    consoleLog('📱 [Dynamic Mobile] Mobile mode disabled - styles removed');
   }
 }
 
@@ -8415,7 +8233,6 @@ function updateMiniTracker() {
   if (!trackerEnabled || (collapseEnabled && isMainMinimized)) {
     if (existingTracker) {
       existingTracker.remove();
-      consoleLog(`📊 Mini tracker hidden - ${!trackerEnabled ? 'disabled' : 'collapsed with main overlay'}`);
     }
     return;
   }
@@ -8582,7 +8399,6 @@ function updateMiniTracker() {
   style.id = 'tracker-styles';
   document.head.appendChild(style);
   
-  consoleLog(`📊 Mini tracker updated: ${totalPainted}/${totalRequired} (${progressPercentage}%) - ${totalNeedCrosshair} need crosshair`);
   } catch (error) {
     consoleError('❌ Error updating mini tracker:', error);
     // Clean up any problematic tracker
@@ -8597,7 +8413,7 @@ function updateMiniTracker() {
   }
 }
 
-// Auto-update mini tracker every 5 seconds if enabled
+// Auto-update mini tracker every 15 seconds if enabled
 let miniTrackerAutoUpdateInterval = null;
 
 function startMiniTrackerAutoUpdate() {
@@ -8612,16 +8428,12 @@ function startMiniTrackerAutoUpdate() {
       const isStillEnabled = getMiniTrackerEnabled();
       if (isStillEnabled) {
         updateMiniTracker();
-        consoleLog('📊 Mini tracker auto-updated');
       } else {
         // Stop auto-update if disabled
         clearInterval(miniTrackerAutoUpdateInterval);
         miniTrackerAutoUpdateInterval = null;
-        consoleLog('📊 Mini tracker auto-update stopped (disabled)');
       }
-    }, 5000); // Update every 5 seconds
-    
-    consoleLog('📊 Mini tracker auto-update started (every 5 seconds)');
+    }, 15000); // Update every 15 seconds
   }
 }
 
@@ -8642,7 +8454,6 @@ function updateLeftBadgesOnly() {
     // Update the palette badges
     updatePaletteLeftBadges(pixelStats);
     
-    consoleLog('🔢 Left badges auto-updated independently');
   } catch (error) {
     consoleWarn('Failed to auto-update left badges:', error);
   }
@@ -8664,11 +8475,8 @@ function startLeftBadgesAutoUpdate() {
         // Stop auto-update if disabled
         clearInterval(leftBadgesAutoUpdateInterval);
         leftBadgesAutoUpdateInterval = null;
-        consoleLog('🔢 Left badges auto-update stopped (disabled)');
       }
     }, 5000); // Update every 5 seconds
-    
-    consoleLog('🔢 Left badges auto-update started (every 5 seconds)');
   }
 }
 
@@ -8688,12 +8496,9 @@ function startCompactListAutoUpdate() {
       // Only update if the list is visible
       if (window.updateCompactListData) {
         window.updateCompactListData(existingCompactList);
-        consoleLog('📌 Compact list auto-updated');
       }
     }
   }, 5000); // Update every 5 seconds
-  
-  consoleLog('📌 Compact list auto-update started (every 5 seconds)');
 }
 
 // Start auto-update when page loads
@@ -9781,9 +9586,6 @@ function buildCrosshairSettingsOverlay() {
     tempMiniTrackerEnabled = trackerCheckbox.checked;
     trackerToggleText.textContent = tempMiniTrackerEnabled ? 'Enabled' : 'Disabled';
     trackerToggleText.style.color = tempMiniTrackerEnabled ? '#4caf50' : '#f44336';
-    
-    // Only update visual state, actual saving happens on Apply
-    consoleLog(`📊 Mini tracker ${tempMiniTrackerEnabled ? 'enabled' : 'disabled'} (preview only)`);
   };
 
   trackerCheckbox.addEventListener('change', updateTrackerState);
@@ -9869,9 +9671,6 @@ function buildCrosshairSettingsOverlay() {
     tempMobileMode = mobileCheckbox.checked;
     mobileToggleText.textContent = tempMobileMode ? 'Enabled' : 'Disabled';
     mobileToggleText.style.color = tempMobileMode ? '#4caf50' : '#f44336';
-    
-    // Only update visual state, actual saving happens on Apply
-    consoleLog(`📱 Mobile mode ${tempMobileMode ? 'enabled' : 'disabled'} (preview only)`);
   };
 
   mobileCheckbox.addEventListener('change', updateMobileState);
@@ -9975,8 +9774,6 @@ function buildCrosshairSettingsOverlay() {
     tempCollapseMinEnabled = collapseCheckbox.checked;
     collapseToggleText.textContent = tempCollapseMinEnabled ? 'Enabled' : 'Disabled';
     collapseToggleText.style.color = tempCollapseMinEnabled ? '#4caf50' : '#f44336';
-    
-    consoleLog(`📊 Collapse mini template ${tempCollapseMinEnabled ? 'enabled' : 'disabled'}`);
   };
 
   collapseCheckbox.addEventListener('change', updateCollapseState);
@@ -10136,9 +9933,6 @@ function buildCrosshairSettingsOverlay() {
     applyButton.disabled = true;
     
     try {
-      // Save all settings
-      consoleLog('🎨 Applying crosshair settings:', { color: tempColor, borders: tempBorderEnabled, miniTracker: tempMiniTrackerEnabled, collapse: tempCollapseMinEnabled, mobile: tempMobileMode, showLeftOnColor: tempShowLeftOnColor, navigation: tempNavigationMethod });
-      
       saveCrosshairColor(tempColor);
       saveBorderEnabled(tempBorderEnabled);
       saveEnhancedSizeEnabled(tempEnhancedSize);
@@ -10185,8 +9979,6 @@ function buildCrosshairSettingsOverlay() {
         settingsOverlay.remove();
         overlayMain.handleDisplayStatus(`Crosshair settings applied: ${tempColor.name}, ${tempBorderEnabled ? 'with' : 'without'} borders, tracker ${tempMiniTrackerEnabled ? 'enabled' : 'disabled'}, collapse ${tempCollapseMinEnabled ? 'enabled' : 'disabled'}, mobile ${tempMobileMode ? 'enabled' : 'disabled'}, Left-on-Color ${tempShowLeftOnColor ? 'enabled' : 'disabled'}!`);
       }, 800);
-      
-      consoleLog('✅ Crosshair settings successfully applied and templates refreshed');
     } catch (error) {
       // Error feedback
       applyButton.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
@@ -10934,7 +10726,6 @@ function createSearchWindow() {
 
   function searchLocation(query) {
     return new Promise((resolve, reject) => {
-      console.log('Searching for:', query);
       GM_xmlhttpRequest({
         method: 'GET',
         url: `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1`,
@@ -10942,11 +10733,8 @@ function createSearchWindow() {
           'User-Agent': 'BlueMarble-Search-UserScript/1.0'
         },
         onload: function(response) {
-          console.log('Search API Response Status:', response.status);
-          console.log('Search API Response Text:', response.responseText);
           try {
             const data = JSON.parse(response.responseText);
-            console.log('Parsed data:', data);
             resolve(data);
           } catch (error) {
             console.error('JSON Parse error:', error);
@@ -10976,7 +10764,6 @@ function createSearchWindow() {
   }
 
   function displayResults(results) {
-    console.log('Search results received:', results);
     
     if (results.length === 0) {
       resultsContainer.innerHTML = '<div class="skirk-no-results">No results found</div>';
@@ -10985,19 +10772,11 @@ function createSearchWindow() {
 
     resultsContainer.innerHTML = '';
     results.forEach(result => {
-      console.log('Raw result object:', result);
-      console.log('Object keys:', Object.keys(result));
       
       // Try to access properties directly from the raw object
       const displayName = result['display_name'] || result['name'] || 'Unknown location';
       const lat = result['lat'];
       const lon = result['lon'];
-      
-      console.log('Extracted values:', {
-        displayName: displayName,
-        lat: lat,
-        lon: lon
-      });
       
       const resultItem = document.createElement('div');
       resultItem.className = 'skirk-search-result';
@@ -11012,12 +10791,6 @@ function createSearchWindow() {
       const secondaryInfo = nameParts.slice(1, 3).join(',').trim(); // Show next 2 parts
       const fullAddress = nameParts.slice(3).join(',').trim(); // Rest of address
 
-      console.log('Display parts:', {
-        primaryName: primaryName,
-        secondaryInfo: secondaryInfo,
-        fullAddress: fullAddress
-      });
-
       resultItem.innerHTML = `
         <div class="skirk-result-content">
           <div class="skirk-result-name">${primaryName}</div>
@@ -11031,9 +10804,6 @@ function createSearchWindow() {
       resultItem.querySelector('.skirk-result-content').addEventListener('click', (e) => {
         const latStr = e.currentTarget.parentElement.dataset.lat;
         const lonStr = e.currentTarget.parentElement.dataset.lon;
-        console.log('=== NAVIGATION DEBUG ===');
-        console.log('Clicking result with lat:', latStr, 'lon:', lonStr);
-        console.log('URL will be:', `https://wplace.live/?lat=${latStr}&lng=${lonStr}&zoom=14.62`);
         
         if (latStr && lonStr && latStr !== 'undefined' && lonStr !== 'undefined') {
           navigateToLocation(latStr, lonStr);
