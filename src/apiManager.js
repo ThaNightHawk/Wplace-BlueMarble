@@ -47,8 +47,6 @@ export default class ApiManager {
       // E.g. "wplace.live/api/files/s0/tiles/0/0/0.png" -> "tiles"
       const endpointText = data['endpoint']?.split('?')[0].split('/').filter(s => s && isNaN(Number(s))).filter(s => s && !s.includes('.')).pop();
 
-      console.log(`%cBlue Marble%c: Recieved message about "%s"`, 'color: cornflowerblue;', '', endpointText);
-
       // Each case is something that Blue Marble can use from the fetch.
       // For instance, if the fetch was for "me", we can update the overlay stats
       switch (endpointText) {
@@ -65,7 +63,6 @@ export default class ApiManager {
 
           const nextLevelPixels = Math.ceil(Math.pow(Math.floor(dataJSON['level']) * Math.pow(30, 0.65), (1/0.65)) - dataJSON['pixelsPainted']); // Calculates pixels to the next level
 
-          console.log(dataJSON['id']);
           if (!!dataJSON['id'] || dataJSON['id'] === 0) {
             console.log(numberToEncoded(
               dataJSON['id'],
@@ -90,10 +87,7 @@ export default class ApiManager {
             const currentTime = Date.now();
             this.userPaintData.timeUntilNextCharge = Math.max(0, nextChargeTimestamp - currentTime);
           }
-          
-          // Log paint data for debugging
-          console.log('%cSkirk Marble%c: Paint Data:', 'color: cornflowerblue;', '', this.userPaintData);
-          
+            
           overlay.updateInnerHTML('bm-user-name-content', `<b>Username:</b> ${escapeHTML(dataJSON['name'])}`); // Updates the text content of the username field
           try {
             const show = JSON.parse(localStorage.getItem('bmShowUsername') ?? 'true');
@@ -218,7 +212,7 @@ export default class ApiManager {
       
       window.skirkChargeInterval = setInterval(() => {
         this.updateFullChargeDisplay(overlay);
-      }, 1000); // Update every second
+      }, 10000); // Update every 10 seconds
     } else {
       // No charge data available
       overlay.updateInnerHTML('bm-user-fullcharge-content','Full Charge in <b style="color: #6b7280;">N/A</b>');
