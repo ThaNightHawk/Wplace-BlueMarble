@@ -52,7 +52,7 @@ export function negativeSafeModulo(a, b) {
  * @param {...any} args - Arguments to be passed into the `log()` function of the Console
  * @since 0.58.9
  */
-export function consoleLog(...args) {((consoleLog) => consoleLog(...args))(console.log);}
+export function consoleLog(...args) {console.log("Fuck console.logs");}
 
 /** Bypasses terser's stripping of console function calls.
  * This is so the non-obfuscated code will contain debugging console calls, but the distributed version won't.
