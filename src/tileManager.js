@@ -49,8 +49,6 @@ export function initializeTileRefreshPause(templateManager) {
   
   // Apply the pause state
   applyTileRefreshPause(templateManager);
-  
-  consoleLog('🎮 Tile refresh pause system initialized. Paused:', tileRefreshPaused);
 }
 
 /** Applies the tile refresh pause setting to the template manager
@@ -68,12 +66,8 @@ function applyTileRefreshPause(templateManager) {
       
       // Check if we have a cached version with templates applied
       if (frozenTileCache.has(tileKey)) {
-        consoleLog('🧊 [Tile Refresh Paused] Using frozen tile cache for:', tileKey);
         return frozenTileCache.get(tileKey);
       }
-      
-      // If no cache, return original blob (fallback)
-      consoleLog('⏸️ [Tile Refresh Paused] No cache for tile:', tileKey, '- returning original');
       return tileBlob;
     };
   } else {
@@ -107,10 +101,8 @@ function applyTileRefreshPause(templateManager) {
  * @since 1.0.0
  */
 function logCacheState() {
-  consoleLog(`🧊 [Tile Cache] Currently cached tiles: ${frozenTileCache.size}`);
   if (frozenTileCache.size > 0) {
     const keys = Array.from(frozenTileCache.keys()).slice(0, 5); // Show first 5 keys
-    consoleLog(`🧊 [Tile Cache] Sample cached tiles: ${keys.join(', ')}${frozenTileCache.size > 5 ? '...' : ''}`);
   }
 }
 
@@ -123,10 +115,6 @@ export function toggleTileRefreshPause(templateManager) {
   if (!tileRefreshPaused) {
     // We're about to pause - log current cache state
     logCacheState();
-    consoleLog('🧊 [Freeze Tiles] Freezing current template view with cached tiles');
-  } else {
-    // We're about to resume - the cache will be used for new tiles
-    consoleLog('▶️ [Resume Tiles] Resuming live tile processing');
   }
   
   tileRefreshPaused = !tileRefreshPaused;
@@ -136,8 +124,6 @@ export function toggleTileRefreshPause(templateManager) {
   
   // Apply the new state
   applyTileRefreshPause(templateManager);
-  
-  consoleLog('⏸️ Tile refresh pause toggled. Now paused:', tileRefreshPaused);
   
   return tileRefreshPaused;
 }
@@ -159,7 +145,6 @@ export function isTileRefreshPaused() {
  */
 export async function forceRefreshSingleTile(templateManager, tileBlob, tileCoords) {
   if (originalDrawTemplateOnTile) {
-    consoleLog('🔄 [Force Refresh] Processing single tile:', tileCoords);
     return await originalDrawTemplateOnTile(tileBlob, tileCoords);
   }
   return tileBlob;
@@ -193,5 +178,4 @@ export function getCachedTileCount() {
 export function clearFrozenTileCache() {
   const previousSize = frozenTileCache.size;
   frozenTileCache.clear();
-  consoleLog(`🧹 Cleared frozen tile cache (${previousSize} tiles removed)`);
 }
