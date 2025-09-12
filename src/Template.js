@@ -53,7 +53,6 @@ export default class Template {
    * @since 0.65.4
    */
   async createTemplateTiles() {
-    // // console.log('Template coordinates:', this.coords);
 
     const shreadSize = 3; // Scale image factor for pixel art enhancement (must be odd)
     
@@ -62,7 +61,6 @@ export default class Template {
     try {
       bitmap = await createImageBitmap(this.file);
     } catch (error) {
-      // // console.log('createImageBitmap failed, using fallback method');
       // Fallback: create image element and canvas
       const img = new Image();
       const canvas = document.createElement('canvas');
@@ -120,8 +118,6 @@ export default class Template {
       }
     }
     
-    // console.log(`Template pixel analysis - Dimensions: ${imageWidth}×${imageHeight}, Valid: ${validPixels.toLocaleString()}, Transparent: ${transparentPixels.toLocaleString()}`);
-    
     // Store pixel counts in instance properties
     this.pixelCount = totalPixels;
     this.validPixelCount = validPixels;
@@ -144,33 +140,21 @@ export default class Template {
       // B. The top left corner of the current tile to the bottom right corner of the image
       const drawSizeY = Math.min(this.tileSize - (pixelY % this.tileSize), imageHeight - (pixelY - this.coords[3]));
 
-      // console.log(`Math.min(${this.tileSize} - (${pixelY} % ${this.tileSize}), ${imageHeight} - (${pixelY - this.coords[3]}))`);
-
       for (let pixelX = this.coords[2]; pixelX < imageWidth + this.coords[2];) {
-
-        // console.log(`Pixel X: ${pixelX}\nPixel Y: ${pixelY}`);
 
         // Draws the partial tile first, if any
         // This calculates the size based on which is smaller:
         // A. The top left corner of the current tile to the bottom right corner of the current tile
         // B. The top left corner of the current tile to the bottom right corner of the image
         const drawSizeX = Math.min(this.tileSize - (pixelX % this.tileSize), imageWidth - (pixelX - this.coords[2]));
-
-        // console.log(`Math.min(${this.tileSize} - (${pixelX} % ${this.tileSize}), ${imageWidth} - (${pixelX - this.coords[2]}))`);
-
-        // console.log(`Draw Size X: ${drawSizeX}\nDraw Size Y: ${drawSizeY}`);
-
+        
         // Change the canvas size and wipe the canvas
         const canvasWidth = drawSizeX * shreadSize;// + (pixelX % this.tileSize) * shreadSize;
         const canvasHeight = drawSizeY * shreadSize;// + (pixelY % this.tileSize) * shreadSize;
         canvas.width = canvasWidth;
         canvas.height = canvasHeight;
 
-        // console.log(`Draw X: ${drawSizeX}\nDraw Y: ${drawSizeY}\nCanvas Width: ${canvasWidth}\nCanvas Height: ${canvasHeight}`);
-
         context.imageSmoothingEnabled = false; // Nearest neighbor
-
-        // console.log(`Getting X ${pixelX}-${pixelX + drawSizeX}\nGetting Y ${pixelY}-${pixelY + drawSizeY}`);
 
         // Draws the template segment on this tile segment
         context.clearRect(0, 0, canvasWidth, canvasHeight); // Clear any previous drawing (only runs when canvas size does not change)
@@ -224,11 +208,6 @@ export default class Template {
             // Check if this color is disabled
             const isDisabled = this.isColorDisabled([r, g, b]);
             
-            // Debug: log disabled colors being processed
-            if (isDisabled && x % 10 === 0 && y % 10 === 0) {
-              // console.log(`Filtering disabled color [${r}, ${g}, ${b}] at pixel [${x}, ${y}]`);
-            }
-            
             // If the pixel is the color #deface, draw a translucent gray checkerboard pattern
             if (r === 222 && g === 250 && b === 206) {
               if ((x + y) % 2 === 0) { // Formula for checkerboard pattern
@@ -248,8 +227,6 @@ export default class Template {
           }
         }
 
-        // console.log(`Shreaded pixels for ${pixelX}, ${pixelY}`, imageData);
-
         context.putImageData(imageData, 0, 0);
 
         // Creates the "0000,0000,000,000" key name
@@ -265,7 +242,6 @@ export default class Template {
         try {
           templateTiles[templateTileName] = await createImageBitmap(canvas);
         } catch (error) {
-          // console.log('createImageBitmap failed for tile, using canvas directly');
           templateTiles[templateTileName] = canvas.cloneNode(true);
         }
         
@@ -283,22 +259,16 @@ export default class Template {
           const canvasBufferBytes = Array.from(new Uint8Array(canvasBuffer));
           templateTilesBuffers[templateTileName] = uint8ToBase64(canvasBufferBytes);
         } catch (error) {
-          // console.log('Canvas blob conversion failed, using data URL fallback');
           const dataURL = canvas.toDataURL('image/png');
           const base64 = dataURL.split(',')[1];
           templateTilesBuffers[templateTileName] = base64;
         }
-
-        // console.log(templateTiles);
 
         pixelX += drawSizeX;
       }
 
       pixelY += drawSizeY;
     }
-
-    // console.log('Template Tiles: ', templateTiles);
-    // console.log('Template Tiles Buffers: ', templateTilesBuffers);
     return { templateTiles, templateTilesBuffers };
   }
 
@@ -511,9 +481,7 @@ export default class Template {
         const templatePixels = new Set();
         let totalPixelsChecked = 0;
         let opaquePixelsFound = 0;
-        
-        console.group(`🔍 [TEMPLATE DETECTION] Scanning ALL template pixels (old logic)`);
-        
+                
         for (let y = 0; y < height; y++) {
           for (let x = 0; x < width; x++) {
             const i = (y * width + x) * 4;
@@ -528,29 +496,16 @@ export default class Template {
                 const r = originalData[i];
                 const g = originalData[i + 1];
                 const b = originalData[i + 2];
-                console.log(`✅ Template pixel found at (${x},${y}) with color RGB(${r},${g},${b})`);
               }
             }
           }
         }
-        
-        console.log(`📊 [TEMPLATE DETECTION STATS]:`);
-        console.log(`  Total pixels checked: ${totalPixelsChecked}`);
-        console.log(`  Template pixels found: ${templatePixels.size}`);
-        console.log(`  This uses the OLD LOGIC - ALL template pixels get crosshairs`);
-        
-        console.groupEnd();
-        
+                
         // Second pass: create crosshair effect around template pixels (OLD LOGIC)
         let crosshairCount = 0;
         let borderCount = 0;
         let transparentCount = 0;
         const borderEnabled = this.getBorderEnabled();
-        
-        console.group(`🎯 [CROSSHAIR GENERATION] Using OLD LOGIC from templateManager.js`);
-        console.log(`Template pixels: ${templatePixels.size}`);
-        console.log(`Border enabled: ${borderEnabled}`);
-        // console.log(`Image dimensions: ${width}x${height}`);
         
         for (let y = 0; y < height; y++) {
           for (let x = 0; x < width; x++) {
@@ -611,10 +566,7 @@ export default class Template {
                 data[i + 2] = crosshairColor.rgb[2];
                 data[i + 3] = crosshairColor.alpha;
                 crosshairCount++;
-                
-                if (crosshairCount <= 5) {
-                  console.log(`🎯 Applied crosshair at (${x},${y}) using user color`);
-                }
+
               } else if (isCorner) {
                 // Make diagonal neighbors blue (crosshair corners)
                 data[i] = 0;       // No red
@@ -622,21 +574,11 @@ export default class Template {
                 data[i + 2] = 255; // Full blue
                 data[i + 3] = 200; // 80% opacity
                 borderCount++;
-                
-                if (borderCount <= 5) {
-                  console.log(`🔲 Applied BLUE border at (${x},${y})`);
-                }
+
               }
             }
           }
         }
-        
-        console.log(`📊 [OLD LOGIC STATISTICS]:`);
-        console.log(`  Template pixels: ${templatePixels.size}`);
-        console.log(`  Transparent pixels: ${transparentCount}`);
-        console.log(`  Crosshairs applied: ${crosshairCount}`);
-        console.log(`  Blue borders applied: ${borderCount}`);
-        console.log(`  Border enabled: ${borderEnabled}`);
         
         if (templatePixels.size === 0) {
           console.warn(`🚨 [CRITICAL] No template pixels found! Template might be completely transparent.`);
@@ -644,11 +586,7 @@ export default class Template {
           console.warn(`⚠️ [ISSUE] Template pixels found but no crosshairs applied! Check template structure.`);
         } else if (borderEnabled && borderCount === 0) {
           console.warn(`⚠️ [BORDER ISSUE] Borders enabled but none applied! Template might not have diagonal space.`);
-        } else {
-          console.log(`✅ [SUCCESS] Crosshairs and borders applied successfully!`);
         }
-        
-        console.groupEnd();
         
         // Put processed data back
         ctx.putImageData(imageData, 0, 0);
@@ -713,7 +651,6 @@ export default class Template {
    * @since 1.0.0 
    */
   getBorderEnabled() {
-    console.group('🔲 [BORDER SETTING] Loading border configuration');
     
     try {
       let borderEnabled = null;
@@ -722,7 +659,6 @@ export default class Template {
       // Try TamperMonkey storage first
       if (typeof GM_getValue !== 'undefined') {
         const saved = GM_getValue('bmCrosshairBorder', null);
-        console.log('TamperMonkey raw value:', saved);
         if (saved !== null) {
           borderEnabled = JSON.parse(saved);
           source = 'TamperMonkey';
@@ -732,7 +668,6 @@ export default class Template {
       // Fallback to localStorage
       if (borderEnabled === null) {
         const saved = localStorage.getItem('bmCrosshairBorder');
-        console.log('localStorage raw value:', saved);
         if (saved !== null) {
           borderEnabled = JSON.parse(saved);
           source = 'localStorage';
@@ -740,7 +675,6 @@ export default class Template {
       }
       
       if (borderEnabled !== null) {
-        console.log(`✅ Border setting loaded from ${source}:`, borderEnabled);
         console.groupEnd();
         return borderEnabled;
       }
@@ -749,8 +683,6 @@ export default class Template {
     }
     
     // Default to disabled
-    console.log('🔲 Using default border setting: false (no saved value found)');
-    console.groupEnd();
     return false;
   }
 }
