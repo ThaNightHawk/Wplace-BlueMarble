@@ -3890,20 +3890,11 @@ function buildColorFilterOverlay() {
     
     // Apply wrong color logic based on settings
     let overallProgress, displayPainted, displayRequired;
-    
-    if (templateManager.getIncludeWrongColorsInProgress()) {
-      // Wrong colors are ALREADY included in totalPainted from calculateRemainingPixelsByColor()
-      // Do NOT add totalWrong again to avoid double counting
-      displayPainted = totalPainted;
-      displayRequired = totalRequired;
-      overallProgress = displayRequired > 0 ? Math.round((displayPainted / displayRequired) * 100) : 0;
-    } else {
-      // Standard calculation (exclude wrong colors)
-      displayPainted = totalPainted;
-      displayRequired = totalRequired;
-      overallProgress = displayRequired > 0 ? Math.round((displayPainted / displayRequired) * 100) : 0;
-    }
-    
+
+    displayPainted = totalPainted;
+    displayRequired = totalRequired;
+    overallProgress = displayRequired > 0 ? Math.round((displayPainted / displayRequired) * 100 * 100) / 100 : 0;
+
     // Inject compact modern styles for Color Filter UI (once)
     if (!document.getElementById('bmcf-styles')) {
       const s = document.createElement('style');
@@ -8260,10 +8251,9 @@ function updateMiniTracker() {
       totalNeedCrosshair += stats.needsCrosshair || 0;
     }
   }
-  
-  const progressPercentage = totalRequired > 0 ? Math.round((totalPainted / totalRequired) * 100) : 0;
-  const remaining = totalRequired - totalPainted;
-  
+
+  const progressPercentage = totalRequired > 0 ? Math.round((totalPainted / totalRequired) * 100) / 100 : 0;
+
   // Create or update tracker
   let tracker = existingTracker;
   if (!tracker) {
