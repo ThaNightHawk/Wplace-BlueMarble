@@ -21,18 +21,18 @@ const consoleStyle = 'color: cornflowerblue;'; // The styling for the console lo
  * @since 0.11.15
  */
 function inject(callback) {
-    const script = document.createElement('script');
-    script.setAttribute('bm-name', name); // Passes in the name value
-    script.setAttribute('bm-cStyle', consoleStyle); // Passes in the console style value
-    script.textContent = `(${callback})();`;
-    document.documentElement?.appendChild(script);
-    script.remove();
+  const script = document.createElement('script');
+  script.setAttribute('bm-name', name); // Passes in the name value
+  script.setAttribute('bm-cStyle', consoleStyle); // Passes in the console style value
+  script.textContent = `(${callback})();`;
+  document.documentElement?.appendChild(script);
+  script.remove();
 }
 
 function flyToLatLng(lat, lng) {
   unsafeWindow.bmmap.flyTo({
-      'center': [lng, lat],
-      'zoom': 16,
+    'center': [lng, lat],
+    'zoom': 16,
   })
 }
 
@@ -51,12 +51,12 @@ inject(() => {
   const observer = new MutationObserver(mutations => {
     try {
       let map = document.querySelector("div.absolute.bottom-3.right-3.z-30").childNodes[0].__click[3].v
-      if(typeof map.version == "string"){
+      if (typeof map.version == "string") {
         window.bmmap = map;
         observer.disconnect();
       }
     }
-    catch (e){
+    catch (e) {
 
     }
   });
@@ -94,7 +94,7 @@ inject(() => {
   const originalFetch = window.fetch; // Saves a copy of the original fetch
 
   // Overrides fetch
-  window.fetch = async function(...args) {
+  window.fetch = async function (...args) {
 
     const response = await originalFetch.apply(this, args); // Sends a fetch
     const cloned = response.clone(); // Makes a copy of the response
@@ -573,19 +573,19 @@ templateManager.setSmartDetectionEnabled(getSmartDetectionEnabled());
 async function loadTemplates() {
   let storageTemplates = {};
   let storageSource = 'none';
-  
+
   // Try TamperMonkey storage first with enhanced error handling
   try {
     if (typeof GM !== 'undefined' && GM.getValue) {
       // Check if data is chunked
       const chunkCount = await GM.getValue('bmTemplates_chunkCount', 0);
       let data;
-      
+
       if (chunkCount > 0) {
         // Load chunked data with validation
         let combinedData = '';
         let corruptedChunks = 0;
-        
+
         for (let i = 0; i < chunkCount; i++) {
           const chunk = await GM.getValue(`bmTemplates_part_${i}`, '');
           if (!chunk) {
@@ -594,17 +594,17 @@ async function loadTemplates() {
             combinedData += chunk;
           }
         }
-        
+
         if (corruptedChunks > 0) {
           throw new Error(`TM data corrupted: ${corruptedChunks}/${chunkCount} chunks missing`);
         }
-        
+
         data = combinedData;
       } else {
         // Load regular single data
         data = await GM.getValue('bmTemplates', '{}');
       }
-      
+
       // Validate JSON before parsing
       if (!data || data === '{}' || data === '') {
         storageTemplates = {};
@@ -628,12 +628,12 @@ async function loadTemplates() {
       // Check if data is chunked (legacy)
       const chunkCount = GM_getValue('bmTemplates_chunkCount', 0);
       let data;
-      
+
       if (chunkCount > 0) {
         // Load chunked data with validation
         let combinedData = '';
         let corruptedChunks = 0;
-        
+
         for (let i = 0; i < chunkCount; i++) {
           const chunk = GM_getValue(`bmTemplates_part_${i}`, '');
           if (!chunk) {
@@ -642,17 +642,17 @@ async function loadTemplates() {
             combinedData += chunk;
           }
         }
-        
+
         if (corruptedChunks > 0) {
           throw new Error(`TM legacy data corrupted: ${corruptedChunks}/${chunkCount} chunks missing`);
         }
-        
+
         data = combinedData;
       } else {
         // Load regular single data
         data = GM_getValue('bmTemplates', '{}');
       }
-      
+
       // Validate JSON before parsing
       if (!data || data === '{}' || data === '') {
         storageTemplates = {};
@@ -674,17 +674,17 @@ async function loadTemplates() {
       }
     }
   } catch (error) {
-    
+
     // Fallback to localStorage with enhanced error handling
     try {
       const lsChunkCount = parseInt(localStorage.getItem('bmTemplates_chunkCount') || '0');
       let data;
-      
+
       if (lsChunkCount > 0) {
         // Load chunked data with validation
         let combinedData = '';
         let corruptedChunks = 0;
-        
+
         for (let i = 0; i < lsChunkCount; i++) {
           const chunk = localStorage.getItem(`bmTemplates_part_${i}`) || '';
           if (!chunk) {
@@ -693,16 +693,16 @@ async function loadTemplates() {
             combinedData += chunk;
           }
         }
-        
+
         if (corruptedChunks > 0) {
           throw new Error(`LS data corrupted: ${corruptedChunks}/${lsChunkCount} chunks missing`);
         }
-        
+
         data = combinedData;
       } else {
         data = localStorage.getItem('bmTemplates') || '{}';
       }
-      
+
       // Validate JSON before parsing
       if (!data || data === '{}' || data === '') {
         storageTemplates = {};
@@ -733,17 +733,17 @@ async function loadTemplates() {
       }
     }
   }
-  
+
   // Minimal debug logging for performance
   const templateCount = Object.keys(storageTemplates?.templates || {}).length;
-  
+
   if (templateCount === 0 && storageSource !== 'empty (all failed)') {
-    
+
     // Try to recover from backup or alternative storage
     try {
       // Check if there's a backup in the other storage system
       let backupData = {};
-      
+
       if (storageSource.includes('TamperMonkey')) {
         // Try localStorage as backup
         const lsBackup = localStorage.getItem('bmTemplates');
@@ -760,7 +760,7 @@ async function loadTemplates() {
           backupData = JSON.parse(tmBackup);
         }
       }
-      
+
       const backupCount = Object.keys(backupData?.templates || {}).length;
       if (backupCount > 0) {
         storageTemplates = backupData;
@@ -770,12 +770,12 @@ async function loadTemplates() {
     } catch (recoveryError) {
     }
   }
-  
+
   // Enhanced template loading with recovery
   try {
     templateManager.importJSON(storageTemplates); // Loads the templates
   } catch (importError) {
-    
+
     // Try to recover by creating fresh template structure
     try {
       const freshTemplates = {
@@ -787,7 +787,7 @@ async function loadTemplates() {
         templateCount: 0,
         totalPixels: 0
       };
-      
+
       templateManager.importJSON(freshTemplates);
     } catch (recoveryError) {
       throw recoveryError;
@@ -797,33 +797,33 @@ async function loadTemplates() {
 
 // Emergency data recovery function
 async function attemptEmergencyRecovery() {
-  
+
   // Clean up any corrupted storage keys
   try {
     // Clear TamperMonkey
     if (typeof GM !== 'undefined' && GM.deleteValue) {
       const tmKeys = ['bmTemplates', 'bmTemplates_timestamp', 'bmTemplates_chunkCount'];
       for (const key of tmKeys) {
-        try { await GM.deleteValue(key); } catch (_) {}
+        try { await GM.deleteValue(key); } catch (_) { }
       }
-      
+
       // Clear potential chunks (up to 50)
       for (let i = 0; i < 50; i++) {
-        try { await GM.deleteValue(`bmTemplates_part_${i}`); } catch (_) {}
+        try { await GM.deleteValue(`bmTemplates_part_${i}`); } catch (_) { }
       }
     }
-    
+
     // Clear localStorage
     const lsKeys = ['bmTemplates', 'bmTemplates_timestamp', 'bmTemplates_chunkCount'];
     for (const key of lsKeys) {
-      try { localStorage.removeItem(key); } catch (_) {}
+      try { localStorage.removeItem(key); } catch (_) { }
     }
-    
+
     // Clear potential chunks (up to 50)
     for (let i = 0; i < 50; i++) {
-      try { localStorage.removeItem(`bmTemplates_part_${i}`); } catch (_) {}
+      try { localStorage.removeItem(`bmTemplates_part_${i}`); } catch (_) { }
     }
-    
+
   } catch (e) {
     console.error('❌ Emergency cleanup failed:', e);
     throw e;
@@ -833,7 +833,7 @@ async function attemptEmergencyRecovery() {
 // Storage migration and validation - FIXED CRITICAL BUG
 async function migrateAndValidateStorage() {
   try {
-    
+
     // Check if we have data in both storages
     let tmData = null;
     let lsData = null;
@@ -841,7 +841,7 @@ async function migrateAndValidateStorage() {
     let lsTimestamp = 0;
     let tmChunked = false;
     let lsChunked = false;
-    
+
     // Get TamperMonkey data with validation
     try {
       if (typeof GM !== 'undefined' && GM.getValue) {
@@ -851,7 +851,7 @@ async function migrateAndValidateStorage() {
           // Load chunked data with validation
           let combinedData = '';
           let missingChunks = 0;
-          
+
           for (let i = 0; i < chunkCount; i++) {
             const chunk = await GM.getValue(`bmTemplates_part_${i}`, '');
             if (!chunk) {
@@ -860,7 +860,7 @@ async function migrateAndValidateStorage() {
               combinedData += chunk;
             }
           }
-          
+
           if (missingChunks > 0) {
             console.error(`❌ TM data corruption: ${missingChunks}/${chunkCount} chunks missing`);
             tmData = null; // Mark as corrupted
@@ -879,7 +879,7 @@ async function migrateAndValidateStorage() {
           // Load chunked data with validation
           let combinedData = '';
           let missingChunks = 0;
-          
+
           for (let i = 0; i < chunkCount; i++) {
             const chunk = GM_getValue(`bmTemplates_part_${i}`, '');
             if (!chunk) {
@@ -889,7 +889,7 @@ async function migrateAndValidateStorage() {
               combinedData += chunk;
             }
           }
-          
+
           if (missingChunks > 0) {
             console.error(`❌ TM legacy data corruption: ${missingChunks}/${chunkCount} chunks missing`);
             tmData = null; // Mark as corrupted
@@ -902,11 +902,11 @@ async function migrateAndValidateStorage() {
         }
         tmTimestamp = GM_getValue('bmTemplates_timestamp', 0);
       }
-    } catch (e) { 
+    } catch (e) {
       console.error('❌ TM check failed:', e);
       tmData = null;
     }
-    
+
     // Get localStorage data with validation
     try {
       const lsChunkCount = parseInt(localStorage.getItem('bmTemplates_chunkCount') || '0');
@@ -914,7 +914,7 @@ async function migrateAndValidateStorage() {
         // Load chunked data with validation
         let combinedData = '';
         let missingChunks = 0;
-        
+
         for (let i = 0; i < lsChunkCount; i++) {
           const chunk = localStorage.getItem(`bmTemplates_part_${i}`) || '';
           if (!chunk) {
@@ -924,7 +924,7 @@ async function migrateAndValidateStorage() {
             combinedData += chunk;
           }
         }
-        
+
         if (missingChunks > 0) {
           console.error(`❌ LS data corruption: ${missingChunks}/${lsChunkCount} chunks missing`);
           lsData = null; // Mark as corrupted
@@ -936,15 +936,15 @@ async function migrateAndValidateStorage() {
         lsData = localStorage.getItem('bmTemplates');
       }
       lsTimestamp = parseInt(localStorage.getItem('bmTemplates_timestamp') || '0');
-    } catch (e) { 
+    } catch (e) {
       console.error('❌ LS check failed:', e);
       lsData = null;
     }
-    
+
     // Validate JSON data before proceeding
     let tmValid = false;
     let lsValid = false;
-    
+
     if (tmData) {
       try {
         const parsed = JSON.parse(tmData);
@@ -958,7 +958,7 @@ async function migrateAndValidateStorage() {
         tmData = null;
       }
     }
-    
+
     if (lsData) {
       try {
         const parsed = JSON.parse(lsData);
@@ -972,7 +972,7 @@ async function migrateAndValidateStorage() {
         lsData = null;
       }
     }
-    
+
     // Clean up corrupted data
     if (!tmValid && tmData) {
       console.warn('🧹 Cleaning up corrupted TM data...');
@@ -980,17 +980,17 @@ async function migrateAndValidateStorage() {
       tmData = null;
       tmTimestamp = 0;
     }
-    
+
     if (!lsValid && lsData) {
       console.warn('🧹 Cleaning up corrupted LS data...');
       await cleanupCorruptedStorage('ls');
       lsData = null;
       lsTimestamp = 0;
     }
-    
+
     // If we have valid data in both, use the most recent
     if (tmValid && lsValid && tmTimestamp !== lsTimestamp) {
-      
+
       if (tmTimestamp > lsTimestamp) {
         try {
           if (tmData.length > 900000) {
@@ -1021,9 +1021,9 @@ async function migrateAndValidateStorage() {
               // Clean up any existing chunks
               const oldChunkCount = await GM.getValue('bmTemplates_chunkCount', 0);
               for (let i = 0; i < oldChunkCount; i++) {
-                try { await GM.deleteValue(`bmTemplates_part_${i}`); } catch (_) {}
+                try { await GM.deleteValue(`bmTemplates_part_${i}`); } catch (_) { }
               }
-              try { await GM.deleteValue('bmTemplates_chunkCount'); } catch (_) {}
+              try { await GM.deleteValue('bmTemplates_chunkCount'); } catch (_) { }
             }
           } else if (typeof GM_setValue !== 'undefined') {
             GM_setValue('bmTemplates', lsData);
@@ -1034,7 +1034,7 @@ async function migrateAndValidateStorage() {
         }
       }
     }
-    
+
   } catch (error) {
     console.error('❌ Storage migration failed:', error);
   }
@@ -1045,22 +1045,22 @@ async function cleanupCorruptedStorage(storageType) {
   try {
     if (storageType === 'tm') {
       if (typeof GM !== 'undefined' && GM.deleteValue) {
-        try { await GM.deleteValue('bmTemplates'); } catch (_) {}
-        try { await GM.deleteValue('bmTemplates_timestamp'); } catch (_) {}
+        try { await GM.deleteValue('bmTemplates'); } catch (_) { }
+        try { await GM.deleteValue('bmTemplates_timestamp'); } catch (_) { }
         const chunkCount = await GM.getValue('bmTemplates_chunkCount', 0);
         for (let i = 0; i < chunkCount; i++) {
-          try { await GM.deleteValue(`bmTemplates_part_${i}`); } catch (_) {}
+          try { await GM.deleteValue(`bmTemplates_part_${i}`); } catch (_) { }
         }
-        try { await GM.deleteValue('bmTemplates_chunkCount'); } catch (_) {}
+        try { await GM.deleteValue('bmTemplates_chunkCount'); } catch (_) { }
       }
     } else if (storageType === 'ls') {
-      try { localStorage.removeItem('bmTemplates'); } catch (_) {}
-      try { localStorage.removeItem('bmTemplates_timestamp'); } catch (_) {}
+      try { localStorage.removeItem('bmTemplates'); } catch (_) { }
+      try { localStorage.removeItem('bmTemplates_timestamp'); } catch (_) { }
       const chunkCount = parseInt(localStorage.getItem('bmTemplates_chunkCount') || '0');
       for (let i = 0; i < chunkCount; i++) {
-        try { localStorage.removeItem(`bmTemplates_part_${i}`); } catch (_) {}
+        try { localStorage.removeItem(`bmTemplates_part_${i}`); } catch (_) { }
       }
-      try { localStorage.removeItem('bmTemplates_chunkCount'); } catch (_) {}
+      try { localStorage.removeItem('bmTemplates_chunkCount'); } catch (_) { }
     }
   } catch (e) {
     console.error(`❌ Failed to cleanup ${storageType.toUpperCase()} storage:`, e);
@@ -1071,11 +1071,11 @@ async function cleanupCorruptedStorage(storageType) {
 async function storeDataChunked(storageType, data, timestamp) {
   const CHUNK_SIZE = 900000;
   const parts = Math.ceil(data.length / CHUNK_SIZE);
-  
+
   if (storageType === 'tm') {
     if (typeof GM !== 'undefined' && GM.setValue) {
       // Clear single key first
-      try { await GM.deleteValue('bmTemplates'); } catch (_) {}
+      try { await GM.deleteValue('bmTemplates'); } catch (_) { }
       await GM.setValue('bmTemplates_chunkCount', parts);
       for (let i = 0; i < parts; i++) {
         const slice = data.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
@@ -1085,7 +1085,7 @@ async function storeDataChunked(storageType, data, timestamp) {
     }
   } else if (storageType === 'ls') {
     // Clear single key first
-    try { localStorage.removeItem('bmTemplates'); } catch (_) {}
+    try { localStorage.removeItem('bmTemplates'); } catch (_) { }
     localStorage.setItem('bmTemplates_chunkCount', String(parts));
     for (let i = 0; i < parts; i++) {
       const slice = data.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
@@ -1152,7 +1152,7 @@ function observeBlack() {
 
     const black = document.querySelector('#color-1'); // Attempt to retrieve the black color element for anchoring
 
-    if (!black) {return;} // Black color does not exist yet. Kills iteself
+    if (!black) { return; } // Black color does not exist yet. Kills iteself
 
     let move = document.querySelector('#bm-button-move'); // Tries to find the move button
 
@@ -1162,7 +1162,7 @@ function observeBlack() {
       move.id = 'bm-button-move';
       move.textContent = 'Move ↑';
       move.className = 'btn btn-soft';
-      move.onclick = function() {
+      move.onclick = function () {
         const roundedBox = this.parentNode.parentNode.parentNode.parentNode; // Obtains the rounded box
         const shouldMoveUp = (this.textContent == 'Move ↑');
         roundedBox.parentNode.className = roundedBox.parentNode.className.replace(shouldMoveUp ? 'bottom' : 'top', shouldMoveUp ? 'top' : 'bottom'); // Moves the rounded box to the top
@@ -1191,37 +1191,37 @@ function observeOpacityButton() {
     // Look for the opacity button (supports both languages)
     const opacityButton = document.querySelector('button[title="Toggle art opacity"], button[title="Alterar opacidade"]');
     if (!opacityButton) return;
-    
+
     // Check if we already added our Map button container
     let mapButtonContainer = document.querySelector('#bm-map-button-container');
     if (mapButtonContainer) return;
-    
+
     // Get the container div (absolute bottom-3 left-3 z-30)
     const opacityContainer = opacityButton.closest('.absolute.bottom-3.left-3.z-30');
     if (!opacityContainer) return;
-    
+
     // Create a new container for the Map button positioned above the opacity button
     mapButtonContainer = document.createElement('div');
     mapButtonContainer.id = 'bm-map-button-container';
     mapButtonContainer.className = 'fixed z-30';
     mapButtonContainer.style.bottom = '230px'; // Fixed position above opacity button (approximate)
     mapButtonContainer.style.left = '12px'; // Fixed position aligned with opacity button
-    
+
     // Create the Map button
     const mapButton = document.createElement('button');
     mapButton.id = 'bm-button-map-positioned';
     mapButton.innerHTML = '🗺️';
     mapButton.className = 'btn btn-lg btn-square sm:btn-xl z-30 shadow-md text-base-content/80';
     mapButton.title = 'Error Map View';
-    
+
     // Initialize button appearance based on saved state
     const initialState = getErrorMapEnabled();
     if (initialState) {
       mapButton.style.background = 'linear-gradient(135deg, #10b981, #059669)';
       mapButton.style.color = 'white';
     }
-    
-    mapButton.onclick = function() {
+
+    mapButton.onclick = function () {
       toggleErrorMapMode();
       const isEnabled = getErrorMapEnabled();
       if (isEnabled) {
@@ -1233,10 +1233,10 @@ function observeOpacityButton() {
       }
       overlayMain.handleDisplayStatus(`Error Map ${isEnabled ? 'enabled' : 'disabled'}! ${isEnabled ? 'Green=correct, Red=wrong pixels' : 'Back to normal view'}`);
     };
-    
+
     // Add the button to our container
     mapButtonContainer.appendChild(mapButton);
-    
+
     // Insert the Map button container directly into the body with fixed positioning
     document.body.appendChild(mapButtonContainer);
   });
@@ -1252,12 +1252,12 @@ function deleteAllTemplates(instance) {
   // Get current template count for confirmation message
   const templateCount = templateManager?.templatesArray?.length || 0;
   const templateText = templateCount === 1 ? 'template' : 'templates';
-  
+
   // Show confirmation dialog
-  const confirmMessage = templateCount > 0 
+  const confirmMessage = templateCount > 0
     ? `Are you sure you want to delete all ${templateCount} ${templateText}?\n\nThis action cannot be undone!`
     : 'No templates found to delete.';
-  
+
   if (templateCount === 0) {
     showCustomConfirmDialog(
       'No Templates Found',
@@ -1269,7 +1269,7 @@ function deleteAllTemplates(instance) {
     );
     return;
   }
-  
+
   // Use custom confirmation dialog instead of native confirm
   showCustomConfirmDialog(
     'Delete All Templates?',
@@ -1301,7 +1301,7 @@ function performDeleteAllTemplates(instance, templateCount, templateText) {
         templates: {}
       };
     }
-    
+
     // Clear from TamperMonkey storage
     try {
       if (typeof GM !== 'undefined' && GM.deleteValue) {
@@ -1314,7 +1314,7 @@ function performDeleteAllTemplates(instance, templateCount, templateText) {
     } catch (error) {
       console.warn('⚠️ Failed to clear TamperMonkey storage:', error);
     }
-    
+
     // Clear from localStorage
     try {
       localStorage.removeItem('bmTemplates');
@@ -1322,27 +1322,27 @@ function performDeleteAllTemplates(instance, templateCount, templateText) {
     } catch (error) {
       console.warn('⚠️ Failed to clear localStorage:', error);
     }
-    
+
     // Force refresh template display to clear any visual templates
     if (typeof refreshTemplateDisplay === 'function') {
       refreshTemplateDisplay().catch(error => {
         console.warn('Warning: Failed to refresh template display:', error);
       });
     }
-    
+
     // Update mini tracker to reflect empty state
     if (typeof updateMiniTracker === 'function') {
       updateMiniTracker();
     }
-    
+
     // Close Color Filter overlay if open
     const existingColorFilterOverlay = document.getElementById('bm-color-filter-overlay');
     if (existingColorFilterOverlay) {
       existingColorFilterOverlay.remove();
     }
-    
+
     instance.handleDisplayStatus(`Successfully deleted all ${templateCount} ${templateText}!`);
-    
+
   } catch (error) {
     consoleError('❌ Failed to delete templates:', error);
     instance.handleDisplayError('Failed to delete templates. Check console for details.');
@@ -1364,7 +1364,7 @@ function clearAllStorage(instance) {
           // Templates
           'bmTemplates',
           'bmTemplates_timestamp',
-          
+
           // Settings
           'bmErrorMap',
           'bmCrosshairColor',
@@ -1381,18 +1381,18 @@ function clearAllStorage(instance) {
           'bmQuickfillEnabled',
           'bmQuickfillPixels',
           'bmQuickfillSelectedColor',
-          
+
           // Color filters
           'bmcf-excluded-colors',
           'bmcf-excluded-colors-pending',
           'bmcf-view-preference',
-          
+
           // Enhanced mode
           'bmEnhanceWrongColors'
         ];
-        
+
         let deletedCount = 0;
-        
+
         // Clear localStorage
         bmStorageKeys.forEach(key => {
           if (localStorage.getItem(key) !== null) {
@@ -1400,7 +1400,7 @@ function clearAllStorage(instance) {
             deletedCount++;
           }
         });
-        
+
         // Clear TamperMonkey storage (if available)
         if (typeof GM_deleteValue !== 'undefined') {
           bmStorageKeys.forEach(key => {
@@ -1411,7 +1411,7 @@ function clearAllStorage(instance) {
             }
           });
         }
-        
+
         // Clear async GM storage (if available)
         if (typeof GM !== 'undefined' && GM.deleteValue) {
           bmStorageKeys.forEach(async (key) => {
@@ -1422,14 +1422,14 @@ function clearAllStorage(instance) {
             }
           });
         }
-        
+
         // Clear template manager data
         if (templateManager) {
           templateManager.templatesJSON = null;
           templateManager.templatesArray = [];
           templateManager.templatesShouldBeDrawn = false;
         }
-        
+
         // Clear any remaining Blue Marble related session storage
         try {
           Object.keys(sessionStorage).forEach(key => {
@@ -1440,16 +1440,16 @@ function clearAllStorage(instance) {
         } catch (e) {
           console.warn('Could not clear session storage:', e);
         }
-        
+
         instance.handleDisplayStatus(`🧹 Storage cleared! Deleted ${deletedCount} keys. Please refresh the page.`);
-        
+
         // Suggest page refresh
         setTimeout(() => {
           if (confirm('Storage cleared successfully!\n\nRefresh the page to complete the reset?')) {
             window.location.reload();
           }
         }, 2000);
-        
+
       } catch (error) {
         console.error('❌ Error clearing storage:', error);
         instance.handleDisplayError('Failed to clear storage. Check console for details.');
@@ -1661,61 +1661,61 @@ function showCustomConfirmDialog(title, message, onConfirm, onCancel = null) {
     `;
     document.head.appendChild(styleSheet);
   }
-  
+
   // Create overlay backdrop
   const overlay = document.createElement('div');
   overlay.className = 'bmcd-overlay-backdrop';
-  
+
   // Create main container
   const container = document.createElement('div');
   container.className = 'bmcd-container';
-  
+
   // Header
   const header = document.createElement('div');
   header.className = 'bmcd-header';
-  
+
   const titleElement = document.createElement('h3');
   titleElement.className = 'bmcd-title';
   titleElement.textContent = title;
-  
+
   header.appendChild(titleElement);
-  
+
   // Content
   const content = document.createElement('div');
   content.className = 'bmcd-content';
-  
+
   const messageElement = document.createElement('p');
   messageElement.className = 'bmcd-message';
   messageElement.textContent = message;
-  
+
   content.appendChild(messageElement);
-  
+
   // Footer with buttons
   const footer = document.createElement('div');
   footer.className = 'bmcd-footer';
-  
+
   // Create buttons based on whether there's a confirm action
   if (onConfirm) {
     // Confirm button
     const confirmBtn = document.createElement('button');
     confirmBtn.className = 'bmcd-btn bmcd-btn-danger';
     confirmBtn.textContent = 'Delete';
-    
+
     confirmBtn.addEventListener('click', () => {
       document.body.removeChild(overlay);
       onConfirm();
     });
-    
+
     // Cancel button
     const cancelBtn = document.createElement('button');
     cancelBtn.className = 'bmcd-btn bmcd-btn-secondary';
     cancelBtn.textContent = 'Cancel';
-    
+
     cancelBtn.addEventListener('click', () => {
       document.body.removeChild(overlay);
       if (onCancel) onCancel();
     });
-    
+
     footer.appendChild(cancelBtn);
     footer.appendChild(confirmBtn);
   } else {
@@ -1725,24 +1725,24 @@ function showCustomConfirmDialog(title, message, onConfirm, onCancel = null) {
     okBtn.textContent = 'OK';
     okBtn.style.flex = 'none';
     okBtn.style.minWidth = '120px';
-    
+
     okBtn.addEventListener('click', () => {
       document.body.removeChild(overlay);
       if (onCancel) onCancel();
     });
-    
+
     footer.appendChild(okBtn);
-    
+
     // Focus the OK button for info dialogs
     setTimeout(() => okBtn.focus(), 100);
   }
-  
+
   // Assemble the dialog
   container.appendChild(header);
   container.appendChild(content);
   container.appendChild(footer);
   overlay.appendChild(container);
-  
+
   // Close dialog when clicking outside (but not when clicking the container)
   overlay.addEventListener('click', (e) => {
     if (e.target === overlay) {
@@ -1750,7 +1750,7 @@ function showCustomConfirmDialog(title, message, onConfirm, onCancel = null) {
       if (onCancel) onCancel();
     }
   });
-  
+
   // ESC key support
   const handleKeyDown = (e) => {
     if (e.key === 'Escape') {
@@ -1760,10 +1760,10 @@ function showCustomConfirmDialog(title, message, onConfirm, onCancel = null) {
     }
   };
   document.addEventListener('keydown', handleKeyDown);
-  
+
   // Add to page
   document.body.appendChild(overlay);
-  
+
   // Focus the cancel button by default for better UX (only if it exists)
   if (onConfirm) {
     setTimeout(() => {
@@ -1781,12 +1781,12 @@ function deleteSelectedTemplate(instance) {
   // Get available templates
   const templates = templateManager?.templatesJSON?.templates || {};
   const templateKeys = Object.keys(templates);
-  
+
   if (templateKeys.length === 0) {
     instance.handleDisplayStatus('No templates found to delete');
     return;
   }
-  
+
   // Inject slate theme styles if not already present
   if (!document.getElementById('bm-delete-template-styles')) {
     const styleSheet = document.createElement('style');
@@ -2083,58 +2083,58 @@ function deleteSelectedTemplate(instance) {
     `;
     document.head.appendChild(styleSheet);
   }
-  
+
   // Create overlay backdrop
   const overlay = document.createElement('div');
   overlay.id = 'bm-delete-template-overlay';
   overlay.className = 'bmdt-overlay-backdrop';
-  
+
   // Create main container
   const container = document.createElement('div');
   container.className = 'bmdt-container';
-  
+
   // Header
   const header = document.createElement('div');
   header.className = 'bmdt-header';
-  
+
   const title = document.createElement('h3');
   title.className = 'bmdt-title';
   title.textContent = 'Select Template to Delete';
-  
+
   header.appendChild(title);
-  
+
   // Content
   const content = document.createElement('div');
   content.className = 'bmdt-content';
-  
+
   // Template list
   const templateList = document.createElement('div');
   templateList.className = 'bmdt-template-list';
-  
+
   templateKeys.forEach(templateKey => {
     const template = templates[templateKey];
     const templateName = template.name || `Template ${templateKey}`;
     const templateCoords = template.coords || 'Unknown location';
-    
+
     const templateItem = document.createElement('div');
     templateItem.className = 'bmdt-template-item';
-    
+
     const templateInfo = document.createElement('div');
     templateInfo.className = 'bmdt-template-info';
-    
+
     const nameSpan = document.createElement('div');
     nameSpan.className = 'bmdt-template-name';
     nameSpan.textContent = templateName;
-    
+
     // Extract sortID from template key for more user-friendly display
     const keySpan = document.createElement('div');
     keySpan.className = 'bmdt-template-key';
     const sortID = templateKey.split(' ')[0];
     keySpan.textContent = `Template ID: ${sortID}`;
-    
+
     const coordsSpan = document.createElement('div');
     coordsSpan.className = 'bmdt-template-coords';
-    
+
     // Parse and format coordinates for better readability
     if (templateCoords && templateCoords !== 'Unknown location') {
       const coords = templateCoords.split(', ');
@@ -2147,18 +2147,18 @@ function deleteSelectedTemplate(instance) {
     } else {
       coordsSpan.textContent = '📍 Unknown location';
     }
-    
+
     templateInfo.appendChild(nameSpan);
     templateInfo.appendChild(keySpan);
     templateInfo.appendChild(coordsSpan);
-    
+
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'bmdt-delete-btn';
     deleteBtn.textContent = 'Delete';
-    
+
     deleteBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      
+
       showCustomConfirmDialog(
         `Delete "${templateName}"?`,
         `Are you sure you want to delete this template?\n\nThis action cannot be undone!`,
@@ -2166,16 +2166,16 @@ function deleteSelectedTemplate(instance) {
           try {
             // Delete from templateManager (now async)
             const success = await templateManager.deleteTemplate(templateKey);
-            
+
             if (success) {
-            // Remove overlay
-            document.body.removeChild(overlay);
-            
-            instance.handleDisplayStatus(`Successfully deleted template "${templateName}"!`);
+              // Remove overlay
+              document.body.removeChild(overlay);
+
+              instance.handleDisplayStatus(`Successfully deleted template "${templateName}"!`);
             } else {
               throw new Error('Delete operation returned false');
             }
-            
+
           } catch (error) {
             consoleError('❌ Failed to delete template:', error);
             instance.handleDisplayError('Failed to delete template. Check console for details.');
@@ -2183,26 +2183,26 @@ function deleteSelectedTemplate(instance) {
         }
       );
     });
-    
+
     templateItem.appendChild(templateInfo);
     templateItem.appendChild(deleteBtn);
     templateList.appendChild(templateItem);
   });
-  
+
   content.appendChild(templateList);
-  
+
   // Footer with buttons
   const footer = document.createElement('div');
   footer.className = 'bmdt-footer';
-  
+
   // Delete All button
   const deleteAllBtn = document.createElement('button');
   deleteAllBtn.className = 'bmdt-btn bmdt-btn-danger';
   deleteAllBtn.textContent = 'Delete All Templates';
-  
+
   deleteAllBtn.addEventListener('click', () => {
     document.body.removeChild(overlay);
-    
+
     showCustomConfirmDialog(
       'Delete All Templates?',
       `Are you sure you want to delete all ${templateKeys.length} templates?\n\nThis action cannot be undone!`,
@@ -2214,26 +2214,26 @@ function deleteSelectedTemplate(instance) {
       }
     );
   });
-  
+
   // Cancel button
   const cancelBtn = document.createElement('button');
   cancelBtn.className = 'bmdt-btn bmdt-btn-secondary';
   cancelBtn.textContent = 'Cancel';
-  
+
   cancelBtn.addEventListener('click', () => {
     document.body.removeChild(overlay);
     instance.handleDisplayStatus('Template deletion cancelled');
   });
-  
+
   footer.appendChild(deleteAllBtn);
   footer.appendChild(cancelBtn);
-  
+
   // Assemble the interface
   container.appendChild(header);
   container.appendChild(content);
   container.appendChild(footer);
   overlay.appendChild(container);
-  
+
   // Close overlay when clicking outside
   overlay.addEventListener('click', (e) => {
     if (e.target === overlay) {
@@ -2241,7 +2241,7 @@ function deleteSelectedTemplate(instance) {
       instance.handleDisplayStatus('Template deletion cancelled');
     }
   });
-  
+
   // Add to page
   document.body.appendChild(overlay);
 }
@@ -2370,7 +2370,7 @@ function showImportDialog(instance) {
   // File processing function
   const processFile = async (file) => {
     if (!file) return;
-    
+
     try {
       const text = await file.text();
       const data = JSON.parse(text);
@@ -2385,7 +2385,7 @@ function showImportDialog(instance) {
 
   // Event handlers
   fileInput.onchange = () => processFile(fileInput.files?.[0]);
-  
+
   dropZone.onclick = () => fileInput.click();
 
   // Drag and drop handlers
@@ -2404,7 +2404,7 @@ function showImportDialog(instance) {
     e.preventDefault();
     dropZone.style.borderColor = '#475569';
     dropZone.style.background = 'rgba(71, 85, 105, 0.1)';
-    
+
     const file = e.dataTransfer.files?.[0];
     if (file && file.type === 'application/json') {
       processFile(file);
@@ -2438,7 +2438,7 @@ function showImportDialog(instance) {
 function showTemplateManageDialog(instance) {
   const templates = templateManager?.templatesJSON?.templates || {};
   const templateKeys = Object.keys(templates);
-  
+
   // Create management dialog
   const overlay = document.createElement('div');
   overlay.id = 'bm-template-manage-overlay';
@@ -2456,7 +2456,7 @@ function showTemplateManageDialog(instance) {
     z-index: 10000;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   `;
-  
+
   const container = document.createElement('div');
   container.style.cssText = `
     background: #1e293b;
@@ -2473,7 +2473,7 @@ function showTemplateManageDialog(instance) {
     flex-direction: column;
     position: relative;
   `;
-  
+
   // Add mobile-specific styles for the manage dialog
   if (!document.getElementById('bm-manage-mobile-styles')) {
     const mobileStyles = document.createElement('style');
@@ -2657,7 +2657,7 @@ function showTemplateManageDialog(instance) {
     `;
     document.head.appendChild(mobileStyles);
   }
-  
+
   // Header
   const header = document.createElement('div');
   header.style.cssText = `
@@ -2668,7 +2668,7 @@ function showTemplateManageDialog(instance) {
     border-bottom: 1px solid #334155;
     background: linear-gradient(135deg, #1e293b, #293548);
   `;
-  
+
   const title = document.createElement('h3');
   title.textContent = 'Manage Templates';
   title.style.cssText = `
@@ -2680,7 +2680,7 @@ function showTemplateManageDialog(instance) {
     -webkit-text-fill-color: transparent;
     background-clip: text;
   `;
-  
+
   const closeBtn = document.createElement('button');
   closeBtn.textContent = '×';
   closeBtn.style.cssText = `
@@ -2707,10 +2707,10 @@ function showTemplateManageDialog(instance) {
     closeBtn.style.color = '#94a3b8';
   };
   closeBtn.onclick = () => document.body.removeChild(overlay);
-  
+
   header.appendChild(title);
   header.appendChild(closeBtn);
-  
+
   // Content
   const content = document.createElement('div');
   content.style.cssText = `
@@ -2718,7 +2718,7 @@ function showTemplateManageDialog(instance) {
     overflow-y: auto;
     flex: 1;
   `;
-  
+
   // Template list
   const templateList = document.createElement('div');
   templateList.style.cssText = `
@@ -2726,14 +2726,14 @@ function showTemplateManageDialog(instance) {
     flex-direction: column;
     gap: 12px;
   `;
-  
+
   templateKeys.forEach(templateKey => {
     const template = templates[templateKey];
     const templateName = template.name || `Template ${templateKey}`;
     const templateCoords = template.coords || 'Unknown location';
     const pixelCount = template.pixelCount || 0;
     const isEnabled = templateManager.isTemplateEnabled(templateKey);
-    
+
     const templateItem = document.createElement('div');
     templateItem.style.cssText = `
       display: flex;
@@ -2753,14 +2753,14 @@ function showTemplateManageDialog(instance) {
       templateItem.style.background = '#334155';
       templateItem.style.transform = '';
     };
-    
+
     const templateInfo = document.createElement('div');
     templateInfo.style.cssText = `
       flex: 1;
       min-width: 0;
       margin-right: 16px;
     `;
-    
+
     // Name + pencil (inline rename)
     const nameRow = document.createElement('div');
     nameRow.style.cssText = 'display:flex; align-items:center; gap:8px; margin-bottom:6px;';
@@ -2816,23 +2816,23 @@ function showTemplateManageDialog(instance) {
     nameLabel.onclick = (e) => { e.stopPropagation(); startInlineRename(); };
     nameRow.appendChild(renameBtn);
     nameRow.appendChild(nameLabel);
-    
+
     const infoSpan = document.createElement('div');
     const validPixelCount = template.validPixelCount || pixelCount; // Fallback for older templates
     const transparentPixelCount = template.transparentPixelCount || 0;
-    
+
     if (validPixelCount !== pixelCount && transparentPixelCount > 0) {
       infoSpan.textContent = `${new Intl.NumberFormat().format(pixelCount)} pixels (${new Intl.NumberFormat().format(validPixelCount)} valid)`;
     } else {
       infoSpan.textContent = `${new Intl.NumberFormat().format(pixelCount)} pixels`;
     }
-    
+
     infoSpan.style.cssText = `
       font-size: 0.85em;
       color: #94a3b8;
       margin-bottom: 4px;
     `;
-    
+
     const coordsSpan = document.createElement('div');
     if (templateCoords && templateCoords !== 'Unknown location') {
       const coords = templateCoords.split(', ');
@@ -2850,11 +2850,11 @@ function showTemplateManageDialog(instance) {
       color: #60a5fa;
       font-weight: 500;
     `;
-    
+
     templateInfo.appendChild(nameRow);
     templateInfo.appendChild(infoSpan);
     templateInfo.appendChild(coordsSpan);
-    
+
     // Button container
     const buttonContainer = document.createElement('div');
     buttonContainer.classList.add('templateInfoControls');
@@ -2863,7 +2863,7 @@ function showTemplateManageDialog(instance) {
       gap: 8px;
       align-items: center;
     `;
-    
+
     // Export button
     const exportBtn = document.createElement('button');
     exportBtn.innerHTML = icons.exportIcon;
@@ -2886,7 +2886,7 @@ function showTemplateManageDialog(instance) {
       exportBtn.style.background = 'linear-gradient(135deg, #16a34a, #15803d)';
       exportBtn.style.transform = 'translateY(-1px)';
     };
-    
+
     exportBtn.onmouseout = () => {
       exportBtn.style.background = 'linear-gradient(135deg, #22c55e, #16a34a)';
       exportBtn.style.transform = '';
@@ -2896,7 +2896,7 @@ function showTemplateManageDialog(instance) {
       templateManager.downloadTemplateJSON(templateKey);
       instance.handleDisplayStatus(`Exported "${templateName}"`);
     };
-    
+
     // Toggle button
     const toggleBtn = document.createElement('button');
     toggleBtn.textContent = isEnabled ? 'Enabled' : 'Disabled';
@@ -2909,26 +2909,26 @@ function showTemplateManageDialog(instance) {
       font-weight: 600;
       transition: all 0.2s ease;
       min-width: 80px;
-      ${isEnabled 
+      ${isEnabled
         ? 'background: linear-gradient(135deg, #10b981, #059669); color: white;'
         : 'background: linear-gradient(135deg, #64748b, #475569); color: #e2e8f0;'
       }
     `;
-    
+
     toggleBtn.onclick = () => {
       const newState = !templateManager.isTemplateEnabled(templateKey);
       templateManager.setTemplateEnabled(templateKey, newState);
-      
+
       // Update button appearance
       toggleBtn.textContent = newState ? 'Enabled' : 'Disabled';
-      toggleBtn.style.background = newState 
+      toggleBtn.style.background = newState
         ? 'linear-gradient(135deg, #10b981, #059669)'
         : 'linear-gradient(135deg, #64748b, #475569)';
       toggleBtn.style.color = newState ? 'white' : '#e2e8f0';
-      
+
       instance.handleDisplayStatus(`${newState ? 'Enabled' : 'Disabled'} template "${templateName}"!`);
     };
-    
+
     // Fly button
     const flyBtn = document.createElement('button');
     flyBtn.innerHTML = icons.pinIcon;
@@ -2947,42 +2947,42 @@ function showTemplateManageDialog(instance) {
       background: linear-gradient(135deg, #3b82f6, #2563eb);
       color: white;
     `;
-    
+
     flyBtn.onmouseover = () => {
       flyBtn.style.background = 'linear-gradient(135deg, #2563eb, #1d4ed8)';
       flyBtn.style.transform = 'translateY(-1px)';
     };
-    
+
     flyBtn.onmouseout = () => {
       flyBtn.style.background = 'linear-gradient(135deg, #3b82f6, #2563eb)';
       flyBtn.style.transform = '';
     };
-    
+
     flyBtn.onclick = () => {
       if (templateCoords && templateCoords !== 'Unknown location') {
         const coords = templateCoords.split(', ');
         if (coords.length === 4) {
           const [tileX, tileY, pX, pY] = coords.map(coord => parseInt(coord.trim(), 10));
           const coordinates = [tileX, tileY, pX, pY];
-          
+
           // Auto-fill coordinate inputs with template coordinates
           const coordTxInput = document.querySelector('#bm-input-tx');
           const coordTyInput = document.querySelector('#bm-input-ty');
           const coordPxInput = document.querySelector('#bm-input-px');
           const coordPyInput = document.querySelector('#bm-input-py');
-          
+
           if (coordTxInput) coordTxInput.value = tileX;
           if (coordTyInput) coordTyInput.value = tileY;
           if (coordPxInput) coordPxInput.value = pX;
           if (coordPyInput) coordPyInput.value = pY;
-          
+
           // Convert to lat/lng
           const latLng = canvasPosToLatLng(coordinates);
-          
+
           if (latLng) {
             // Use navigation method setting
             const navigationMethod = Settings.getNavigationMethod();
-            
+
             if (navigationMethod === 'openurl') {
               const zoom = 13.62;
               const url = `https://wplace.live/?lat=${latLng.lat}&lng=${latLng.lng}&zoom=${zoom}`;
@@ -2990,9 +2990,9 @@ function showTemplateManageDialog(instance) {
             } else {
               flyToLatLng(latLng.lat, latLng.lng);
             }
-            
+
             document.body.removeChild(overlay)
-            
+
             instance.handleDisplayStatus(`🧭 ${navigationMethod === 'openurl' ? 'Navigating' : 'Flying'} to "${templateName}" at ${latLng.lat.toFixed(6)}, ${latLng.lng.toFixed(6)}! Coordinates auto-filled.`);
           } else {
             instance.handleDisplayStatus('❌ Unable to convert coordinates to location!');
@@ -3004,7 +3004,7 @@ function showTemplateManageDialog(instance) {
         instance.handleDisplayStatus('❌ No coordinates available for this template!');
       }
     };
-    
+
     // Delete button
     const deleteBtn = document.createElement('button');
     deleteBtn.innerHTML = icons.deleteIcon;
@@ -3023,33 +3023,33 @@ function showTemplateManageDialog(instance) {
       background: linear-gradient(135deg, #ef4444, #dc2626);
       color: white;
     `;
-    
+
     deleteBtn.onmouseover = () => {
       deleteBtn.style.background = 'linear-gradient(135deg, #dc2626, #b91c1c)';
       deleteBtn.style.transform = 'translateY(-1px)';
     };
-    
+
     deleteBtn.onmouseout = () => {
       deleteBtn.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
       deleteBtn.style.transform = '';
     };
-    
+
     deleteBtn.onclick = (e) => {
       e.stopPropagation();
-      
+
       showCustomConfirmDialog(
         `Delete "${templateName}"?`,
         `Are you sure you want to delete this template?\n\nThis action cannot be undone!`,
         async () => {
           try {
             const success = await templateManager.deleteTemplate(templateKey);
-            
+
             if (success) {
               // Remove the template item from the dialog
               templateItem.remove();
-              
+
               instance.handleDisplayStatus(`Successfully deleted template "${templateName}"!`);
-              
+
               // Check if there are no more templates left
               const remainingTemplates = templateList.children.length;
               if (remainingTemplates === 0) {
@@ -3060,7 +3060,7 @@ function showTemplateManageDialog(instance) {
             } else {
               throw new Error('Delete operation returned false');
             }
-            
+
           } catch (error) {
             consoleError('❌ Failed to delete template:', error);
             instance.handleDisplayError('Failed to delete template. Check console for details.');
@@ -3073,20 +3073,20 @@ function showTemplateManageDialog(instance) {
     buttonContainer.appendChild(flyBtn);
     buttonContainer.appendChild(deleteBtn);
     buttonContainer.appendChild(toggleBtn);
-    
+
     templateItem.appendChild(templateInfo);
     templateItem.appendChild(buttonContainer);
     templateList.appendChild(templateItem);
   });
-  
-    content.appendChild(templateList);
-  
+
+  content.appendChild(templateList);
+
   // Footer with actions that keep dialog open
   const footer = document.createElement('div');
   footer.style.cssText = `
     display: flex; gap: 12px; padding: 12px 16px; border-top: 1px solid #334155;
     background: #1b2433; position: sticky; bottom: 0; justify-content: center; align-items: center;`
-  ;
+    ;
   const enableAllBtn = document.createElement('button');
   enableAllBtn.textContent = 'Enable All';
   enableAllBtn.style.cssText = `padding: 10px 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; background: linear-gradient(135deg,#10b981,#059669); color: white;`;
@@ -3118,7 +3118,7 @@ function showTemplateManageDialog(instance) {
   };
   footer.appendChild(enableAllBtn);
   footer.appendChild(disableAllBtn);
-  
+
   // Assemble the interface
   container.appendChild(header);
   container.appendChild(content);
@@ -3131,7 +3131,7 @@ function showTemplateManageDialog(instance) {
       document.body.removeChild(overlay);
     }
   });
-  
+
   // Add to page
   document.body.appendChild(overlay);
 }
@@ -3144,642 +3144,642 @@ function showTemplateManageDialog(instance) {
  */
 function buildOverlayMain() {
   let isMinimized = false; // Overlay state tracker (false = maximized, true = minimized)
-  
-  overlayMain.addDiv({'id': 'bm-overlay', 'style': 'top: 10px; right: 75px;'})
-    .addDiv({'id': 'bm-contain-header'})
-      .addDiv({'id': 'bm-bar-drag'}).buildElement()
-      .addDiv({'id': 'bm-title-container'})
-        .addImg({'alt': 'Blue Marble Icon - Click to minimize/maximize', 'src': 'https://raw.githubusercontent.com/Seris0/Wplace-BlueMarble/main/dist/assets/Favicon.png', 'style': 'cursor: pointer; width: 42px; height: 42px;'}, 
-          (instance, img) => {
-          /** Click event handler for overlay minimize/maximize functionality.
-           * 
-           * Toggles between two distinct UI states:
-           * 1. MINIMIZED STATE (60×76px):
-           *    - Shows only the Blue Marble icon and drag bar
-           *    - Hides all input fields, buttons, and status information
-           *    - Applies fixed dimensions for consistent appearance
-           *    - Repositions icon with 3px right offset for visual centering
-           * 
-           * 2. MAXIMIZED STATE (responsive):
-           *    - Restores full functionality with all UI elements
-           *    - Removes fixed dimensions to allow responsive behavior
-           *    - Resets icon positioning to default alignment
-           *    - Shows success message when returning to maximized state
-           * 
-           * @param {Event} event - The click event object (implicit)
-           */
-          img.addEventListener('click', () => {
-            isMinimized = !isMinimized; // Toggle the current state
 
-            const overlay = document.querySelector('#bm-overlay');
-            const header = document.querySelector('#bm-contain-header');
-            const dragBar = document.querySelector('#bm-bar-drag');
-            const coordsContainer = document.querySelector('#bm-contain-coords');
-            const coordsButton = document.querySelector('#bm-button-coords');
-            const createButton = document.querySelector('#bm-button-create');
-            const manageButton = document.querySelector('#bm-button-manage');
-            const pauseButton = document.querySelector('#bm-button-pause-tiles');
-            const coordInputs = document.querySelectorAll('#bm-contain-coords input');
-            const colorFilterButton = document.getElementById('bm-button-color-filter');
-            
-            // Pre-restore original dimensions when switching to maximized state
-            // This ensures smooth transition and prevents layout issues
-            if (!isMinimized) {
-              overlay.style.width = "";
-              overlay.style.height = "";
-              overlay.style.maxWidth = "";
-              overlay.style.minWidth = "";
-              overlay.style.padding = "10px";
-            }
-            
-            // Define elements that should be hidden/shown during state transitions
-            // Each element is documented with its purpose for maintainability
-                          const elementsToToggle = [
-                '#bm-overlay h1',                    // Main title "Blue Marble"
-                '#bm-contain-userinfo',              // User information section (username, droplets, level)
-                '#bm-overlay #bm-separator',         // Visual separator lines
-                '#bm-contain-automation > *:not(#bm-contain-coords)', // Automation section excluding coordinates
-                'div:has(> #bm-input-file-template)', // Template file upload interface container
-                '#bm-contain-buttons-action',        // Action buttons container
-                `#${instance.outputStatusId}`        // Status log textarea for user feedback
-              ];
-            
-            // Apply visibility changes to all toggleable elements
-            elementsToToggle.forEach(selector => {
-              const elements = document.querySelectorAll(selector);
-              elements.forEach(element => {
-                element.style.display = isMinimized ? 'none' : '';
-              });
-            });
-            // Handle coordinate container and button visibility based on state
-            if (isMinimized) {
-              // ==================== MINIMIZED STATE CONFIGURATION ====================
-              // In minimized state, we hide ALL interactive elements except the icon and drag bar
-              // This creates a clean, unobtrusive interface that maintains only essential functionality
-              
-              // Hide coordinate input container completely
-              if (coordsContainer) {
-                coordsContainer.style.display = 'none';
-              }
-              
-              // Hide coordinate button (pin icon)
-              if (coordsButton) {
-                coordsButton.style.display = 'none';
-              }
-              
-              // Hide create template button
-              if (createButton) {
-                createButton.style.display = 'none';
-              }
+  overlayMain.addDiv({ 'id': 'bm-overlay', 'style': 'top: 10px; right: 75px;' })
+    .addDiv({ 'id': 'bm-contain-header' })
+    .addDiv({ 'id': 'bm-bar-drag' }).buildElement()
+    .addDiv({ 'id': 'bm-title-container' })
+    .addImg({ 'alt': 'Blue Marble Icon - Click to minimize/maximize', 'src': 'https://raw.githubusercontent.com/Seris0/Wplace-BlueMarble/main/dist/assets/Favicon.png', 'style': 'cursor: pointer; width: 42px; height: 42px;' },
+      (instance, img) => {
+        /** Click event handler for overlay minimize/maximize functionality.
+         * 
+         * Toggles between two distinct UI states:
+         * 1. MINIMIZED STATE (60×76px):
+         *    - Shows only the Blue Marble icon and drag bar
+         *    - Hides all input fields, buttons, and status information
+         *    - Applies fixed dimensions for consistent appearance
+         *    - Repositions icon with 3px right offset for visual centering
+         * 
+         * 2. MAXIMIZED STATE (responsive):
+         *    - Restores full functionality with all UI elements
+         *    - Removes fixed dimensions to allow responsive behavior
+         *    - Resets icon positioning to default alignment
+         *    - Shows success message when returning to maximized state
+         * 
+         * @param {Event} event - The click event object (implicit)
+         */
+        img.addEventListener('click', () => {
+          isMinimized = !isMinimized; // Toggle the current state
 
-              // Hide manage templates button
-              if (manageButton) {
-                manageButton.style.display = 'none';
-              }
+          const overlay = document.querySelector('#bm-overlay');
+          const header = document.querySelector('#bm-contain-header');
+          const dragBar = document.querySelector('#bm-bar-drag');
+          const coordsContainer = document.querySelector('#bm-contain-coords');
+          const coordsButton = document.querySelector('#bm-button-coords');
+          const createButton = document.querySelector('#bm-button-create');
+          const manageButton = document.querySelector('#bm-button-manage');
+          const pauseButton = document.querySelector('#bm-button-pause-tiles');
+          const coordInputs = document.querySelectorAll('#bm-contain-coords input');
+          const colorFilterButton = document.getElementById('bm-button-color-filter');
 
-              // Hide pause tiles button
-              if (pauseButton) {
-                pauseButton.style.display = 'none';
-              }
-
-
-              // Keep Color Filter button visible but compact in minimized state
-              if (colorFilterButton) {
-                // Ensure the container chain is visible
-                let parent = colorFilterButton.parentElement;
-                for (let i = 0; i < 3 && parent; i++) {
-                  parent.style.display = '';
-                  parent = parent.parentElement;
-                }
-
-                // Normalize the immediate container to center the compact button
-                const btnContainer = colorFilterButton.parentElement;
-                if (btnContainer) {
-                  btnContainer.style.display = 'flex';
-                  btnContainer.style.justifyContent = 'center';
-                  btnContainer.style.alignItems = 'center';
-                  btnContainer.style.gap = '0';
-                  btnContainer.style.position = 'relative';
-                  btnContainer.style.height = '44px'; // Fixed height to contain the absolute positioned button
-                  // clear grid constraints if any
-                  btnContainer.style.gridTemplateColumns = 'unset';
-                }
-
-                // Save original innerHTML once
-                if (!colorFilterButton.dataset.originalHtml) {
-                  colorFilterButton.dataset.originalHtml = colorFilterButton.innerHTML;
-                }
-                // Reduce to icon-only
-                const svg = colorFilterButton.querySelector('svg');
-                if (svg) {
-                  colorFilterButton.innerHTML = svg.outerHTML;
-                }
-
-                // Compact styling to fit the 60px overlay (inner content width = 60 - 2*8 padding = 44px)
-                colorFilterButton.style.width = '56px';
-                colorFilterButton.style.height = '38px';
-                colorFilterButton.style.padding = '0';
-                colorFilterButton.style.gap = '0';
-                colorFilterButton.style.fontSize = '0';
-                colorFilterButton.style.overflow = 'hidden';
-                colorFilterButton.style.borderRadius = '8px';
-                colorFilterButton.style.animation = 'none';
-                colorFilterButton.style.gridColumn = 'auto';
-                colorFilterButton.style.margin = '2px auto 0';
-                colorFilterButton.style.display = 'flex';
-                colorFilterButton.style.alignItems = 'center';
-                colorFilterButton.style.justifyContent = 'center';
-                colorFilterButton.style.alignSelf = 'center';
-                colorFilterButton.style.position = 'absolute';
-                colorFilterButton.style.left = '50%';
-                colorFilterButton.style.transform = 'translateX(-50%)';
-                colorFilterButton.style.zIndex = '1000';
-                // Tweak SVG size
-                const icon = colorFilterButton.querySelector('svg');
-                if (icon) {
-                  icon.style.width = '18px';
-                  icon.style.height = '18px';
-                  icon.style.display = 'block';
-                  icon.style.margin = '0 auto';
-                }
-              }
-              
-              // Hide all coordinate input fields individually (failsafe)
-              coordInputs.forEach(input => {
-                input.style.display = 'none';
-              });
-              
-              // Apply fixed dimensions for consistent minimized appearance
-              // These dimensions were chosen to accommodate the icon while remaining compact
-              // Increase width to accommodate compact Color Filter button (56px) + padding
-              overlay.style.width = '72px';    // 56px button + 6px*2 padding
-              overlay.style.height = '76px';   // Keep height consistent
-              overlay.style.maxWidth = '72px';  // Prevent expansion
-              overlay.style.minWidth = '72px';  // Prevent shrinking
-              overlay.style.padding = '6px';    // Reduced padding for tighter layout
-              
-                             // Apply icon positioning for better visual centering in minimized state
-               img.style.margin = '0.3rem 0 0 0';
-              
-              // Configure header layout for minimized state
-              header.style.textAlign = 'center';
-              header.style.margin = '0';
-              header.style.marginBottom = '0';
-              
-              // Ensure drag bar remains visible and properly spaced
-              if (dragBar) {
-                dragBar.style.display = '';
-                dragBar.style.marginBottom = '0.1em';
-              }
-            } else {
-              // ==================== MAXIMIZED STATE RESTORATION ====================
-              // In maximized state, we restore all elements to their default functionality
-              // This involves clearing all style overrides applied during minimization
-              
-              // Restore coordinate container to default state
-              if (coordsContainer) {
-                coordsContainer.style.display = '';           // Show container
-                coordsContainer.style.flexDirection = '';     // Reset flex layout
-                coordsContainer.style.justifyContent = '';    // Reset alignment
-                coordsContainer.style.alignItems = '';        // Reset alignment
-                coordsContainer.style.gap = '';               // Reset spacing
-                coordsContainer.style.textAlign = '';         // Reset text alignment
-                coordsContainer.style.margin = '';            // Reset margins
-              }
-              
-              // Restore coordinate button visibility
-              if (coordsButton) {
-                coordsButton.style.display = '';
-              }
-              
-              // Restore create button visibility and reset positioning
-              if (createButton) {
-                createButton.style.display = '';
-                createButton.style.marginTop = '';
-              }
-
-              // Restore manage button visibility and reset positioning
-              if (manageButton) {
-                manageButton.style.display = '';
-                manageButton.style.marginTop = '';
-              }
-
-              // Restore pause tiles button visibility and reset positioning
-              if (pauseButton) {
-                pauseButton.style.display = '';
-                pauseButton.style.marginTop = '';
-              }
-
-
-              // Restore Color Filter button to normal size/state
-              if (colorFilterButton) {
-                // Restore content
-                if (colorFilterButton.dataset.originalHtml) {
-                  colorFilterButton.innerHTML = colorFilterButton.dataset.originalHtml;
-                }
-                // Clear compact styles
-                colorFilterButton.style.width = '';
-                colorFilterButton.style.height = '';
-                colorFilterButton.style.padding = '';
-                colorFilterButton.style.gap = '';
-                colorFilterButton.style.fontSize = '';
-                colorFilterButton.style.overflow = '';
-                colorFilterButton.style.borderRadius = '';
-                colorFilterButton.style.animation = '';
-                colorFilterButton.style.transform = '';
-                colorFilterButton.style.gridColumn = '';
-                colorFilterButton.style.margin = '';
-                colorFilterButton.style.display = '';
-                colorFilterButton.style.alignItems = '';
-                colorFilterButton.style.justifyContent = '';
-                colorFilterButton.style.position = '';
-                colorFilterButton.style.left = '';
-                colorFilterButton.style.zIndex = '';
-
-                // Reset parent container layout
-                const btnContainer = colorFilterButton.parentElement;
-                if (btnContainer) {
-                  btnContainer.style.display = '';
-                  btnContainer.style.justifyContent = '';
-                  btnContainer.style.alignItems = '';
-                  btnContainer.style.gap = '';
-                  btnContainer.style.position = '';
-                  btnContainer.style.height = '';
-                  btnContainer.style.gridTemplateColumns = '';
-                }
-              }
-              
-              // Restore all coordinate input fields
-              coordInputs.forEach(input => {
-                input.style.display = '';
-              });
-              
-              // Reset icon positioning to default (remove minimized state offset)
-              img.style.margin = '';
-              
-              // Restore overlay to responsive dimensions
-              overlay.style.padding = '10px';
-              
-              // Reset header styling to defaults
-              header.style.textAlign = '';
-              header.style.margin = '';
-              header.style.marginBottom = '';
-              
-              // Reset drag bar spacing
-              if (dragBar) {
-                dragBar.style.marginBottom = '';
-              }
-              
-              // Remove all dimension constraints to allow natural responsive behavior
-              overlay.style.maxWidth = "";
-              overlay.style.minWidth = "";
-            }
-            
-            // Update mini tracker visibility based on collapse setting
-            updateMiniTracker();
-            
-            // ==================== ACCESSIBILITY AND USER FEEDBACK ====================
-            // Update accessibility information for screen readers and tooltips
-            
-            // Update alt text to reflect current state for screen readers and tooltips
-            img.alt = isMinimized ? 
-              'Blue Marble Icon - Minimized (Click to maximize)' : 
-              'Blue Marble Icon - Maximized (Click to minimize)';
-            
-            // No status message needed - state change is visually obvious to users
-          });
-        }
-      ).buildElement()
-      .addHeader(1, {'textContent': 'Skirk Marble'}).buildElement()
-    .buildElement()
-
-    .addDiv({ id: 'bm-separator' })
-      .addHr().buildElement()
-      .addDiv({ id: 'bm-separator-text'})
-        .addDiv({ innerHTML: icons.informationIcon }).buildElement()
-        .addP({ textContent: 'Information' }).buildElement()
-        .buildElement()
-      .addHr().buildElement()
-    .buildElement()
-
-    .addDiv({'id': 'bm-contain-userinfo'})
-      .addDiv({'id': 'bm-user-name'})
-        .addDiv({'id': 'bm-user-icon', innerHTML: icons.userIcon}).buildElement()
-        .addP({'id': 'bm-user-name-content', innerHTML: '<b>Username:</b> loading...'}).buildElement()
-      .buildElement()
-      .addDiv({'id': 'bm-user-droplets'})
-        .addDiv({'id': 'bm-user-droplets-icon', innerHTML: icons.dropletIcon}).buildElement()
-        .addP({'id': 'bm-user-droplets-content', innerHTML: '<b>Droplets:</b> loading...'}).buildElement()
-      .buildElement()
-      .addDiv({'id': 'bm-user-nextlevel'})
-        .addDiv({'id': 'bm-user-nextlevel-icon', innerHTML: icons.nextLevelIcon}).buildElement()
-        .addP({'id': 'bm-user-nextlevel-content', 'textContent': 'Next level in...'}).buildElement()
-      .buildElement()
-      .addDiv({'id': 'bm-user-fullcharge'})
-        .addDiv({'id': 'bm-user-fullcharge-icon', innerHTML: icons.chargeIcon}).buildElement()
-        .addP({'id': 'bm-user-fullcharge-content', 'textContent': 'Full Charge in...'}).buildElement()
-      .buildElement()
-    .buildElement()
-    
-
-    .addDiv({ id: 'bm-separator' })
-      .addHr().buildElement()
-      .addDiv({ id: 'bm-separator-text'})
-        .addDiv({ innerHTML: icons.templateIcon }).buildElement()
-        .addP({ textContent: 'Template' }).buildElement()
-        .buildElement()
-      .addHr().buildElement()
-    .buildElement()
-
-    .addDiv({'id': 'bm-contain-automation'})
-      // .addCheckbox({'id': 'bm-input-stealth', 'textContent': 'Stealth', 'checked': true}).buildElement()
-      // .addButtonHelp({'title': 'Waits for the website to make requests, instead of sending requests.'}).buildElement()
-      // .addBr().buildElement()
-      // .addCheckbox({'id': 'bm-input-possessed', 'textContent': 'Possessed', 'checked': true}).buildElement()
-      // .addButtonHelp({'title': 'Controls the website as if it were possessed.'}).buildElement()
-      // .addBr().buildElement()
-      .addDiv({'id': 'bm-contain-coords'})
-        .addDiv({ id: 'bm-coords-title' })
-          .addDiv({ innerHTML: icons.pinIcon }).buildElement()
-          .addP({ innerHTML: 'Coordinates:' }).buildElement()
-          .addButton({'id': 'bm-button-coords', 'innerHTML': icons.pointerIcon + 'Detect', title: 'Set the location to the pixel you\'ve selected'},
-            (instance, button) => {
-              button.onclick = () => {
-                const coords = instance.apiManager?.coordsTilePixel; // Retrieves the coords from the API manager
-                if (!coords?.[0]) {
-                  instance.handleDisplayError('Coordinates are malformed! Did you try clicking on the canvas first?');
-                  return;
-                }
-                instance.updateInnerHTML('bm-input-tx', coords?.[0] || '');
-                instance.updateInnerHTML('bm-input-ty', coords?.[1] || '');
-                instance.updateInnerHTML('bm-input-px', coords?.[2] || '');
-                instance.updateInnerHTML('bm-input-py', coords?.[3] || '');
-              }
-            }
-          ).buildElement()
-        .buildElement()
-        .addDiv({ id: 'bm-contain-inputs'})
-          .addP({ textContent: 'Tile: '}).buildElement()
-          .addInput({'type': 'number', 'id': 'bm-input-tx', 'placeholder': 'T1 X', 'min': 0, 'max': 2047, 'step': 1, 'required': true}).buildElement()
-          .addInput({'type': 'number', 'id': 'bm-input-ty', 'placeholder': 'T1 Y', 'min': 0, 'max': 2047, 'step': 1, 'required': true}).buildElement()
-          .addInput({'type': 'number', 'id': 'bm-input-px', 'placeholder': 'Px X', 'min': 0, 'max': 2047, 'step': 1, 'required': true}).buildElement()
-          .addInput({'type': 'number', 'id': 'bm-input-py', 'placeholder': 'Px Y', 'min': 0, 'max': 2047, 'step': 1, 'required': true}).buildElement()
-        .buildElement()
-      .buildElement()
-      .addDiv({'id': 'bm-contain-buttons-template'})
-        .addInputFile({'id': 'bm-input-file-template', 'textContent': 'Upload Template', 'accept': 'image/png, image/jpeg, image/webp, image/bmp, image/gif'})
-        .addButton({'id': 'bm-button-create', innerHTML: icons.createIcon + 'Create'}, (instance, button) => {
-          button.onclick = () => {
-            const input = document.querySelector('#bm-input-file-template');
-
-            const coordTlX = document.querySelector('#bm-input-tx');
-            if (!coordTlX.checkValidity()) {coordTlX.reportValidity(); instance.handleDisplayError('Coordinates are malformed! Did you try clicking on the canvas first?'); return;}
-            const coordTlY = document.querySelector('#bm-input-ty');
-            if (!coordTlY.checkValidity()) {coordTlY.reportValidity(); instance.handleDisplayError('Coordinates are malformed! Did you try clicking on the canvas first?'); return;}
-            const coordPxX = document.querySelector('#bm-input-px');
-            if (!coordPxX.checkValidity()) {coordPxX.reportValidity(); instance.handleDisplayError('Coordinates are malformed! Did you try clicking on the canvas first?'); return;}
-            const coordPxY = document.querySelector('#bm-input-py');
-            if (!coordPxY.checkValidity()) {coordPxY.reportValidity(); instance.handleDisplayError('Coordinates are malformed! Did you try clicking on the canvas first?'); return;}
-
-            // Kills itself if there is no file
-            if (!input?.files[0]) {instance.handleDisplayError(`No file selected!`); return;}
-
-            templateManager.createTemplate(input.files[0], input.files[0]?.name.replace(/\.[^/.]+$/, ''), [Number(coordTlX.value), Number(coordTlY.value), Number(coordPxX.value), Number(coordPxY.value)]);
-
-            // Update mini tracker after template creation
-            setTimeout(() => updateMiniTracker(), 500);
-
-            instance.handleDisplayStatus(`Drew to canvas!`);
-        }
-      }).buildElement()
-      .addButton({'id': 'bm-button-manage', innerHTML: icons.manageIcon + 'Manage'}, (instance, button) => {
-        button.onclick = () => {
-          showTemplateManageDialog(instance);
-        }
-      }).buildElement()
-      .addButton({'id': 'bm-button-pause-tiles', innerHTML: (isTileRefreshPaused() ? icons.playIcon : icons.pauseIcon) + (isTileRefreshPaused() ? 'Resume' : 'Pause')}, (instance, button) => {
-        // Set initial CSS class based on current pause state
-        if (isTileRefreshPaused()) {
-          button.classList.add('paused');
-        }
-        button.onclick = () => {
-          const isPaused = toggleTileRefreshPause(templateManager);
-          const cachedCount = getCachedTileCount();
-          
-          button.innerHTML = `${isPaused ? icons.playIcon : icons.pauseIcon} ${isPaused ? 'Resume' : 'Pause'}${isPaused && cachedCount > 0 ? ` (${cachedCount})` : ''}`;
-          
-          // Toggle CSS class based on pause state
-          if (isPaused) {
-            button.classList.add('paused');
-          } else {
-            button.classList.remove('paused');
+          // Pre-restore original dimensions when switching to maximized state
+          // This ensures smooth transition and prevents layout issues
+          if (!isMinimized) {
+            overlay.style.width = "";
+            overlay.style.height = "";
+            overlay.style.maxWidth = "";
+            overlay.style.minWidth = "";
+            overlay.style.padding = "10px";
           }
-          
-          instance.handleDisplayStatus(isPaused ? 
-            `🧊 Tile refresh paused! Showing frozen template view with ${cachedCount} cached tiles for better performance.` : 
-            '▶️ Tile refresh resumed - templates now update in real-time'
-          );
-        }
-      }).buildElement()
-      .addButton({'id': 'bm-button-color-filter', innerHTML: icons.colorFilterIcon + 'Color Filter'}, (instance, button) => {
-        button.onclick = () => {
-          buildColorFilterOverlay();
-        }
-      }).buildElement()
-      .buildElement() // Close bm-contain-buttons-template
-      .addTextarea({'id': overlayMain.outputStatusId, 'placeholder': `Status: Sleeping...\nVersion: ${version}`, 'readOnly': true}).buildElement()
-      .addDiv({'id': 'bm-contain-buttons-action', 'style': 'position: relative; padding-bottom: 22px;'})
-        .addDiv({'style': 'display: flex; gap: 6px; align-items: center;'})
-          .addButton({'id': 'bm-button-convert', 'className': 'bm-help', 'innerHTML': '🎨', 'title': 'Template Color Converter'}, 
-            (instance, button) => {
-            button.addEventListener('click', () => {
-              window.open('https://pepoafonso.github.io/color_converter_wplace/', '_blank', 'noopener noreferrer');
-            });
-          }).buildElement()
-          .addButton({'id': 'bm-search', 'className': 'bm-help', 'innerHTML': '🔍', 'title': 'Location Search'}, 
-            (instance, button) => {
-            button.addEventListener('click', () => {
-              const searchPanel = document.getElementById('skirk-search-draggable');
-              if (searchPanel) {
-                searchPanel.style.display = searchPanel.style.display === 'none' || !searchPanel.style.display ? 'flex' : 'none';
-              }
-            });
-          }).buildElement()
-          .addButton({'id': 'bm-button-flyto', 'className': 'bm-help', 'innerHTML': '🗺️', 'title': 'Fly to current coordinates'}, 
-            (instance, button) => {
-            button.addEventListener('click', () => {
-              function coordsToLatLng(tileX, tileY, pixelX, pixelY){
-                const z = 40075.016685578485 / 2 ** 11
-                const ys = 20037508.342789244
-                let metersX = (tileX * 1000 + pixelX) * z - ys
-                let metersY = (ys - (tileY * 1000 + pixelY) * z) / ys * 180
 
-                let lat = 180 / Math.PI * (2 * Math.atan(Math.exp(metersY * Math.PI / 180)) - Math.PI / 2)
-                let lng = metersX / ys * 180
-                return [lat, lng]
-              }
-              
-              const coordTlX = Number(document.querySelector('#bm-input-tx').value);
-              const coordTlY = Number(document.querySelector('#bm-input-ty').value);
-              const coordPxX = Number(document.querySelector('#bm-input-px').value);
-              const coordPxY = Number(document.querySelector('#bm-input-py').value);
+          // Define elements that should be hidden/shown during state transitions
+          // Each element is documented with its purpose for maintainability
+          const elementsToToggle = [
+            '#bm-overlay h1',                    // Main title "Blue Marble"
+            '#bm-contain-userinfo',              // User information section (username, droplets, level)
+            '#bm-overlay #bm-separator',         // Visual separator lines
+            '#bm-contain-automation > *:not(#bm-contain-coords)', // Automation section excluding coordinates
+            'div:has(> #bm-input-file-template)', // Template file upload interface container
+            '#bm-contain-buttons-action',        // Action buttons container
+            `#${instance.outputStatusId}`        // Status log textarea for user feedback
+          ];
 
-              const [lat, lng] = coordsToLatLng(coordTlX, coordTlY, coordPxX, coordPxY);
-              
-              // Use navigation method setting
-              const navigationMethod = Settings.getNavigationMethod();
-              
-              if (navigationMethod === 'openurl') {
-                const zoom = 13.62;
-                const url = `https://wplace.live/?lat=${lat}&lng=${lng}&zoom=${zoom}`;
-                window.location.href = url;
-              } else {
-                flyToLatLng(lat, lng);
-              }
-              
+          // Apply visibility changes to all toggleable elements
+          elementsToToggle.forEach(selector => {
+            const elements = document.querySelectorAll(selector);
+            elements.forEach(element => {
+              element.style.display = isMinimized ? 'none' : '';
             });
-          }).buildElement()
-          .addButton({'id': 'bm-button-screenshot', 'className': 'bm-help', 'innerHTML': '📸', 'title': 'Screenshot current template area (auto-detects coordinates)'},
-            (instance, button) => {
-              button.addEventListener('click', async () => {
-                try {
-                  // SMART DETECTION: Get currently displayed template or first enabled template
-                  let t = null;
-                  
-                  if (templateManager.smartDetectionEnabled && templateManager.currentlyDisplayedTemplates.size === 1) {
-                    // Use the currently displayed template for screenshot
-                    const displayedTemplateKey = Array.from(templateManager.currentlyDisplayedTemplates)[0];
-                    t = templateManager.templatesArray.find(template => `${template.sortID} ${template.authorID}` === displayedTemplateKey);
-                  }
-                  
-                  // Fallback: Use first enabled template
-                  if (!t && templateManager.templatesArray) {
-                    for (const template of templateManager.templatesArray) {
-                      const templateKey = `${template.sortID} ${template.authorID}`;
-                      if (templateManager.isTemplateEnabled(templateKey)) {
-                        t = template;
-                        break;
-                      }
-                    }
-                  }
-                  
-                  // Final fallback: Use first template (backward compatibility)
-                  if (!t) {
-                    t = templateManager.templatesArray?.[0];
-                  }
-                  
-                  if (!t) {
-                    instance.handleDisplayError('No template loaded.');
-                    return;
-                  }
-                  
-                  // Auto-detect coordinates from active template
-                  if (!t.coords || t.coords.length !== 4) {
-                    instance.handleDisplayError('Template coordinates not available. Create a template first.');
-                    return;
-                  }
-                  
-                  const [tx, ty, px, py] = t.coords;
-                  if (!Number.isFinite(tx) || !Number.isFinite(ty) || !Number.isFinite(px) || !Number.isFinite(py)) {
-                    instance.handleDisplayError('Invalid template coordinates detected.');
-                    return;
-                  }
-                  
-                  if (!t.imageWidth || !t.imageHeight) {
-                    // Attempt to infer from chunked tiles if missing
-                    try {
-                      const tiles = Object.keys(t.chunked || {});
-                      if (tiles.length > 0) {
-                        let minScaledX = Infinity, minScaledY = Infinity, maxScaledX = 0, maxScaledY = 0;
-                        const scale = templateManager.drawMult || 3;
-                        const tileSizeScaled = (templateManager.tileSize || 1000) * scale;
-                        for (const key of tiles) {
-                          const bmp = t.chunked[key];
-                          const [tX, tY, pX, pY] = key.split(',').map(Number);
-                          const startX = tX * tileSizeScaled + pX * scale;
-                          const startY = tY * tileSizeScaled + pY * scale;
-                          const endX = startX + bmp.width;
-                          const endY = startY + bmp.height;
-                          if (startX < minScaledX) minScaledX = startX;
-                          if (startY < minScaledY) minScaledY = startY;
-                          if (endX > maxScaledX) maxScaledX = endX;
-                          if (endY > maxScaledY) maxScaledY = endY;
-                        }
-                        t.imageWidth = Math.round((maxScaledX - minScaledX) / scale);
-                        t.imageHeight = Math.round((maxScaledY - minScaledY) / scale);
-                      }
-                    } catch (_) {}
-                  }
-                  if (!t.imageWidth || !t.imageHeight) {
-                    instance.handleDisplayError('Template size unavailable; create or reload the template first.');
-                    return;
-                  }
-                  const base = apiManager?.tileServerBase;
-                  if (!base) {
-                    instance.handleDisplayError('Tile server not detected yet; open the board to load tiles.');
-                    return;
-                  }
-                  const blob = await templateManager.buildTemplateAreaScreenshot(base, [tx, ty, px, py], [t.imageWidth, t.imageHeight]);
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url;
-                  const ts = new Date().toISOString().replace(/[:.]/g,'-');
-                  a.download = `wplace_template_area_${String(tx).padStart(4,'0')},${String(ty).padStart(4,'0')}_${ts}.png`;
-                  document.body.appendChild(a);
-                  a.click();
-                  a.remove();
-                  setTimeout(() => URL.revokeObjectURL(url), 1000);
-                  instance.handleDisplayStatus(`📸 Saved template area screenshot!\nLocation: Tile ${tx},${ty} • Pixel ${px},${py}\nSize: ${t.imageWidth}×${t.imageHeight}px`);
-                } catch (e) {
-                  console.error(e);
-                  instance.handleDisplayError('Failed to create screenshot');
-                }
-              });
+          });
+          // Handle coordinate container and button visibility based on state
+          if (isMinimized) {
+            // ==================== MINIMIZED STATE CONFIGURATION ====================
+            // In minimized state, we hide ALL interactive elements except the icon and drag bar
+            // This creates a clean, unobtrusive interface that maintains only essential functionality
+
+            // Hide coordinate input container completely
+            if (coordsContainer) {
+              coordsContainer.style.display = 'none';
             }
-          ).buildElement()
-          // Clear All Storage button
-          .addButton({'id': 'bm-button-clear-storage', 'className': 'bm-help', innerHTML: icons.clearStorageIcon, 'title': 'Clear All Storage'}, (instance, button) => {
-            button.addEventListener('click', () => {
-              clearAllStorage(instance);
+
+            // Hide coordinate button (pin icon)
+            if (coordsButton) {
+              coordsButton.style.display = 'none';
+            }
+
+            // Hide create template button
+            if (createButton) {
+              createButton.style.display = 'none';
+            }
+
+            // Hide manage templates button
+            if (manageButton) {
+              manageButton.style.display = 'none';
+            }
+
+            // Hide pause tiles button
+            if (pauseButton) {
+              pauseButton.style.display = 'none';
+            }
+
+
+            // Keep Color Filter button visible but compact in minimized state
+            if (colorFilterButton) {
+              // Ensure the container chain is visible
+              let parent = colorFilterButton.parentElement;
+              for (let i = 0; i < 3 && parent; i++) {
+                parent.style.display = '';
+                parent = parent.parentElement;
+              }
+
+              // Normalize the immediate container to center the compact button
+              const btnContainer = colorFilterButton.parentElement;
+              if (btnContainer) {
+                btnContainer.style.display = 'flex';
+                btnContainer.style.justifyContent = 'center';
+                btnContainer.style.alignItems = 'center';
+                btnContainer.style.gap = '0';
+                btnContainer.style.position = 'relative';
+                btnContainer.style.height = '44px'; // Fixed height to contain the absolute positioned button
+                // clear grid constraints if any
+                btnContainer.style.gridTemplateColumns = 'unset';
+              }
+
+              // Save original innerHTML once
+              if (!colorFilterButton.dataset.originalHtml) {
+                colorFilterButton.dataset.originalHtml = colorFilterButton.innerHTML;
+              }
+              // Reduce to icon-only
+              const svg = colorFilterButton.querySelector('svg');
+              if (svg) {
+                colorFilterButton.innerHTML = svg.outerHTML;
+              }
+
+              // Compact styling to fit the 60px overlay (inner content width = 60 - 2*8 padding = 44px)
+              colorFilterButton.style.width = '56px';
+              colorFilterButton.style.height = '38px';
+              colorFilterButton.style.padding = '0';
+              colorFilterButton.style.gap = '0';
+              colorFilterButton.style.fontSize = '0';
+              colorFilterButton.style.overflow = 'hidden';
+              colorFilterButton.style.borderRadius = '8px';
+              colorFilterButton.style.animation = 'none';
+              colorFilterButton.style.gridColumn = 'auto';
+              colorFilterButton.style.margin = '2px auto 0';
+              colorFilterButton.style.display = 'flex';
+              colorFilterButton.style.alignItems = 'center';
+              colorFilterButton.style.justifyContent = 'center';
+              colorFilterButton.style.alignSelf = 'center';
+              colorFilterButton.style.position = 'absolute';
+              colorFilterButton.style.left = '50%';
+              colorFilterButton.style.transform = 'translateX(-50%)';
+              colorFilterButton.style.zIndex = '1000';
+              // Tweak SVG size
+              const icon = colorFilterButton.querySelector('svg');
+              if (icon) {
+                icon.style.width = '18px';
+                icon.style.height = '18px';
+                icon.style.display = 'block';
+                icon.style.margin = '0 auto';
+              }
+            }
+
+            // Hide all coordinate input fields individually (failsafe)
+            coordInputs.forEach(input => {
+              input.style.display = 'none';
             });
-          }).buildElement()
-          // Import Templates button
-          .addButton({'id': 'bm-button-import', 'className': 'bm-help', innerHTML: icons.uploadIcon, 'title': 'Import Templates'}, (instance, button) => {
-            button.addEventListener('click', () => {
-              showImportDialog(instance);
+
+            // Apply fixed dimensions for consistent minimized appearance
+            // These dimensions were chosen to accommodate the icon while remaining compact
+            // Increase width to accommodate compact Color Filter button (56px) + padding
+            overlay.style.width = '72px';    // 56px button + 6px*2 padding
+            overlay.style.height = '76px';   // Keep height consistent
+            overlay.style.maxWidth = '72px';  // Prevent expansion
+            overlay.style.minWidth = '72px';  // Prevent shrinking
+            overlay.style.padding = '6px';    // Reduced padding for tighter layout
+
+            // Apply icon positioning for better visual centering in minimized state
+            img.style.margin = '0.3rem 0 0 0';
+
+            // Configure header layout for minimized state
+            header.style.textAlign = 'center';
+            header.style.margin = '0';
+            header.style.marginBottom = '0';
+
+            // Ensure drag bar remains visible and properly spaced
+            if (dragBar) {
+              dragBar.style.display = '';
+              dragBar.style.marginBottom = '0.1em';
+            }
+          } else {
+            // ==================== MAXIMIZED STATE RESTORATION ====================
+            // In maximized state, we restore all elements to their default functionality
+            // This involves clearing all style overrides applied during minimization
+
+            // Restore coordinate container to default state
+            if (coordsContainer) {
+              coordsContainer.style.display = '';           // Show container
+              coordsContainer.style.flexDirection = '';     // Reset flex layout
+              coordsContainer.style.justifyContent = '';    // Reset alignment
+              coordsContainer.style.alignItems = '';        // Reset alignment
+              coordsContainer.style.gap = '';               // Reset spacing
+              coordsContainer.style.textAlign = '';         // Reset text alignment
+              coordsContainer.style.margin = '';            // Reset margins
+            }
+
+            // Restore coordinate button visibility
+            if (coordsButton) {
+              coordsButton.style.display = '';
+            }
+
+            // Restore create button visibility and reset positioning
+            if (createButton) {
+              createButton.style.display = '';
+              createButton.style.marginTop = '';
+            }
+
+            // Restore manage button visibility and reset positioning
+            if (manageButton) {
+              manageButton.style.display = '';
+              manageButton.style.marginTop = '';
+            }
+
+            // Restore pause tiles button visibility and reset positioning
+            if (pauseButton) {
+              pauseButton.style.display = '';
+              pauseButton.style.marginTop = '';
+            }
+
+
+            // Restore Color Filter button to normal size/state
+            if (colorFilterButton) {
+              // Restore content
+              if (colorFilterButton.dataset.originalHtml) {
+                colorFilterButton.innerHTML = colorFilterButton.dataset.originalHtml;
+              }
+              // Clear compact styles
+              colorFilterButton.style.width = '';
+              colorFilterButton.style.height = '';
+              colorFilterButton.style.padding = '';
+              colorFilterButton.style.gap = '';
+              colorFilterButton.style.fontSize = '';
+              colorFilterButton.style.overflow = '';
+              colorFilterButton.style.borderRadius = '';
+              colorFilterButton.style.animation = '';
+              colorFilterButton.style.transform = '';
+              colorFilterButton.style.gridColumn = '';
+              colorFilterButton.style.margin = '';
+              colorFilterButton.style.display = '';
+              colorFilterButton.style.alignItems = '';
+              colorFilterButton.style.justifyContent = '';
+              colorFilterButton.style.position = '';
+              colorFilterButton.style.left = '';
+              colorFilterButton.style.zIndex = '';
+
+              // Reset parent container layout
+              const btnContainer = colorFilterButton.parentElement;
+              if (btnContainer) {
+                btnContainer.style.display = '';
+                btnContainer.style.justifyContent = '';
+                btnContainer.style.alignItems = '';
+                btnContainer.style.gap = '';
+                btnContainer.style.position = '';
+                btnContainer.style.height = '';
+                btnContainer.style.gridTemplateColumns = '';
+              }
+            }
+
+            // Restore all coordinate input fields
+            coordInputs.forEach(input => {
+              input.style.display = '';
             });
-          }).buildElement()
-        .buildElement()
-        .addDiv({'style': 'position: absolute; left: 0; bottom: 2px; text-align: left; padding: 0; pointer-events: auto; user-select: text; line-height: 12px;'}).
-          addSmall({'textContent': 'Made by SwingTheVine | Fork Seris0', 'style': 'color: #94a3b8; font-size: 0.74em; opacity: 0.85;'}).buildElement()
-        .buildElement()
-      .buildElement()
+
+            // Reset icon positioning to default (remove minimized state offset)
+            img.style.margin = '';
+
+            // Restore overlay to responsive dimensions
+            overlay.style.padding = '10px';
+
+            // Reset header styling to defaults
+            header.style.textAlign = '';
+            header.style.margin = '';
+            header.style.marginBottom = '';
+
+            // Reset drag bar spacing
+            if (dragBar) {
+              dragBar.style.marginBottom = '';
+            }
+
+            // Remove all dimension constraints to allow natural responsive behavior
+            overlay.style.maxWidth = "";
+            overlay.style.minWidth = "";
+          }
+
+          // Update mini tracker visibility based on collapse setting
+          updateMiniTracker();
+
+          // ==================== ACCESSIBILITY AND USER FEEDBACK ====================
+          // Update accessibility information for screen readers and tooltips
+
+          // Update alt text to reflect current state for screen readers and tooltips
+          img.alt = isMinimized ?
+            'Blue Marble Icon - Minimized (Click to maximize)' :
+            'Blue Marble Icon - Maximized (Click to minimize)';
+
+          // No status message needed - state change is visually obvious to users
+        });
+      }
+    ).buildElement()
+    .addHeader(1, { 'textContent': 'Skirk Marble' }).buildElement()
     .buildElement()
-  .buildOverlay(document.body);
+
+    .addDiv({ id: 'bm-separator' })
+    .addHr().buildElement()
+    .addDiv({ id: 'bm-separator-text' })
+    .addDiv({ innerHTML: icons.informationIcon }).buildElement()
+    .addP({ textContent: 'Information' }).buildElement()
+    .buildElement()
+    .addHr().buildElement()
+    .buildElement()
+
+    .addDiv({ 'id': 'bm-contain-userinfo' })
+    .addDiv({ 'id': 'bm-user-name' })
+    .addDiv({ 'id': 'bm-user-icon', innerHTML: icons.userIcon }).buildElement()
+    .addP({ 'id': 'bm-user-name-content', innerHTML: '<b>Username:</b> loading...' }).buildElement()
+    .buildElement()
+    .addDiv({ 'id': 'bm-user-droplets' })
+    .addDiv({ 'id': 'bm-user-droplets-icon', innerHTML: icons.dropletIcon }).buildElement()
+    .addP({ 'id': 'bm-user-droplets-content', innerHTML: '<b>Droplets:</b> loading...' }).buildElement()
+    .buildElement()
+    .addDiv({ 'id': 'bm-user-nextlevel' })
+    .addDiv({ 'id': 'bm-user-nextlevel-icon', innerHTML: icons.nextLevelIcon }).buildElement()
+    .addP({ 'id': 'bm-user-nextlevel-content', 'textContent': 'Next level in...' }).buildElement()
+    .buildElement()
+    .addDiv({ 'id': 'bm-user-fullcharge' })
+    .addDiv({ 'id': 'bm-user-fullcharge-icon', innerHTML: icons.chargeIcon }).buildElement()
+    .addP({ 'id': 'bm-user-fullcharge-content', 'textContent': 'Full Charge in...' }).buildElement()
+    .buildElement()
+    .buildElement()
+
+
+    .addDiv({ id: 'bm-separator' })
+    .addHr().buildElement()
+    .addDiv({ id: 'bm-separator-text' })
+    .addDiv({ innerHTML: icons.templateIcon }).buildElement()
+    .addP({ textContent: 'Template' }).buildElement()
+    .buildElement()
+    .addHr().buildElement()
+    .buildElement()
+
+    .addDiv({ 'id': 'bm-contain-automation' })
+    // .addCheckbox({'id': 'bm-input-stealth', 'textContent': 'Stealth', 'checked': true}).buildElement()
+    // .addButtonHelp({'title': 'Waits for the website to make requests, instead of sending requests.'}).buildElement()
+    // .addBr().buildElement()
+    // .addCheckbox({'id': 'bm-input-possessed', 'textContent': 'Possessed', 'checked': true}).buildElement()
+    // .addButtonHelp({'title': 'Controls the website as if it were possessed.'}).buildElement()
+    // .addBr().buildElement()
+    .addDiv({ 'id': 'bm-contain-coords' })
+    .addDiv({ id: 'bm-coords-title' })
+    .addDiv({ innerHTML: icons.pinIcon }).buildElement()
+    .addP({ innerHTML: 'Coordinates:' }).buildElement()
+    .addButton({ 'id': 'bm-button-coords', 'innerHTML': icons.pointerIcon + 'Detect', title: 'Set the location to the pixel you\'ve selected' },
+      (instance, button) => {
+        button.onclick = () => {
+          const coords = instance.apiManager?.coordsTilePixel; // Retrieves the coords from the API manager
+          if (!coords?.[0]) {
+            instance.handleDisplayError('Coordinates are malformed! Did you try clicking on the canvas first?');
+            return;
+          }
+          instance.updateInnerHTML('bm-input-tx', coords?.[0] || '');
+          instance.updateInnerHTML('bm-input-ty', coords?.[1] || '');
+          instance.updateInnerHTML('bm-input-px', coords?.[2] || '');
+          instance.updateInnerHTML('bm-input-py', coords?.[3] || '');
+        }
+      }
+    ).buildElement()
+    .buildElement()
+    .addDiv({ id: 'bm-contain-inputs' })
+    .addP({ textContent: 'Tile: ' }).buildElement()
+    .addInput({ 'type': 'number', 'id': 'bm-input-tx', 'placeholder': 'T1 X', 'min': 0, 'max': 2047, 'step': 1, 'required': true }).buildElement()
+    .addInput({ 'type': 'number', 'id': 'bm-input-ty', 'placeholder': 'T1 Y', 'min': 0, 'max': 2047, 'step': 1, 'required': true }).buildElement()
+    .addInput({ 'type': 'number', 'id': 'bm-input-px', 'placeholder': 'Px X', 'min': 0, 'max': 2047, 'step': 1, 'required': true }).buildElement()
+    .addInput({ 'type': 'number', 'id': 'bm-input-py', 'placeholder': 'Px Y', 'min': 0, 'max': 2047, 'step': 1, 'required': true }).buildElement()
+    .buildElement()
+    .buildElement()
+    .addDiv({ 'id': 'bm-contain-buttons-template' })
+    .addInputFile({ 'id': 'bm-input-file-template', 'textContent': 'Upload Template', 'accept': 'image/png, image/jpeg, image/webp, image/bmp, image/gif' })
+    .addButton({ 'id': 'bm-button-create', innerHTML: icons.createIcon + 'Create' }, (instance, button) => {
+      button.onclick = () => {
+        const input = document.querySelector('#bm-input-file-template');
+
+        const coordTlX = document.querySelector('#bm-input-tx');
+        if (!coordTlX.checkValidity()) { coordTlX.reportValidity(); instance.handleDisplayError('Coordinates are malformed! Did you try clicking on the canvas first?'); return; }
+        const coordTlY = document.querySelector('#bm-input-ty');
+        if (!coordTlY.checkValidity()) { coordTlY.reportValidity(); instance.handleDisplayError('Coordinates are malformed! Did you try clicking on the canvas first?'); return; }
+        const coordPxX = document.querySelector('#bm-input-px');
+        if (!coordPxX.checkValidity()) { coordPxX.reportValidity(); instance.handleDisplayError('Coordinates are malformed! Did you try clicking on the canvas first?'); return; }
+        const coordPxY = document.querySelector('#bm-input-py');
+        if (!coordPxY.checkValidity()) { coordPxY.reportValidity(); instance.handleDisplayError('Coordinates are malformed! Did you try clicking on the canvas first?'); return; }
+
+        // Kills itself if there is no file
+        if (!input?.files[0]) { instance.handleDisplayError(`No file selected!`); return; }
+
+        templateManager.createTemplate(input.files[0], input.files[0]?.name.replace(/\.[^/.]+$/, ''), [Number(coordTlX.value), Number(coordTlY.value), Number(coordPxX.value), Number(coordPxY.value)]);
+
+        // Update mini tracker after template creation
+        setTimeout(() => updateMiniTracker(), 500);
+
+        instance.handleDisplayStatus(`Drew to canvas!`);
+      }
+    }).buildElement()
+    .addButton({ 'id': 'bm-button-manage', innerHTML: icons.manageIcon + 'Manage' }, (instance, button) => {
+      button.onclick = () => {
+        showTemplateManageDialog(instance);
+      }
+    }).buildElement()
+    .addButton({ 'id': 'bm-button-pause-tiles', innerHTML: (isTileRefreshPaused() ? icons.playIcon : icons.pauseIcon) + (isTileRefreshPaused() ? 'Resume' : 'Pause') }, (instance, button) => {
+      // Set initial CSS class based on current pause state
+      if (isTileRefreshPaused()) {
+        button.classList.add('paused');
+      }
+      button.onclick = () => {
+        const isPaused = toggleTileRefreshPause(templateManager);
+        const cachedCount = getCachedTileCount();
+
+        button.innerHTML = `${isPaused ? icons.playIcon : icons.pauseIcon} ${isPaused ? 'Resume' : 'Pause'}${isPaused && cachedCount > 0 ? ` (${cachedCount})` : ''}`;
+
+        // Toggle CSS class based on pause state
+        if (isPaused) {
+          button.classList.add('paused');
+        } else {
+          button.classList.remove('paused');
+        }
+
+        instance.handleDisplayStatus(isPaused ?
+          `🧊 Tile refresh paused! Showing frozen template view with ${cachedCount} cached tiles for better performance.` :
+          '▶️ Tile refresh resumed - templates now update in real-time'
+        );
+      }
+    }).buildElement()
+    .addButton({ 'id': 'bm-button-color-filter', innerHTML: icons.colorFilterIcon + 'Color Filter' }, (instance, button) => {
+      button.onclick = () => {
+        buildColorFilterOverlay();
+      }
+    }).buildElement()
+    .buildElement() // Close bm-contain-buttons-template
+    .addTextarea({ 'id': overlayMain.outputStatusId, 'placeholder': `Status: Sleeping...\nVersion: ${version}`, 'readOnly': true }).buildElement()
+    .addDiv({ 'id': 'bm-contain-buttons-action', 'style': 'position: relative; padding-bottom: 22px;' })
+    .addDiv({ 'style': 'display: flex; gap: 6px; align-items: center;' })
+    .addButton({ 'id': 'bm-button-convert', 'className': 'bm-help', 'innerHTML': '🎨', 'title': 'Template Color Converter' },
+      (instance, button) => {
+        button.addEventListener('click', () => {
+          window.open('https://pepoafonso.github.io/color_converter_wplace/', '_blank', 'noopener noreferrer');
+        });
+      }).buildElement()
+    .addButton({ 'id': 'bm-search', 'className': 'bm-help', 'innerHTML': '🔍', 'title': 'Location Search' },
+      (instance, button) => {
+        button.addEventListener('click', () => {
+          const searchPanel = document.getElementById('skirk-search-draggable');
+          if (searchPanel) {
+            searchPanel.style.display = searchPanel.style.display === 'none' || !searchPanel.style.display ? 'flex' : 'none';
+          }
+        });
+      }).buildElement()
+    .addButton({ 'id': 'bm-button-flyto', 'className': 'bm-help', 'innerHTML': '🗺️', 'title': 'Fly to current coordinates' },
+      (instance, button) => {
+        button.addEventListener('click', () => {
+          function coordsToLatLng(tileX, tileY, pixelX, pixelY) {
+            const z = 40075.016685578485 / 2 ** 11
+            const ys = 20037508.342789244
+            let metersX = (tileX * 1000 + pixelX) * z - ys
+            let metersY = (ys - (tileY * 1000 + pixelY) * z) / ys * 180
+
+            let lat = 180 / Math.PI * (2 * Math.atan(Math.exp(metersY * Math.PI / 180)) - Math.PI / 2)
+            let lng = metersX / ys * 180
+            return [lat, lng]
+          }
+
+          const coordTlX = Number(document.querySelector('#bm-input-tx').value);
+          const coordTlY = Number(document.querySelector('#bm-input-ty').value);
+          const coordPxX = Number(document.querySelector('#bm-input-px').value);
+          const coordPxY = Number(document.querySelector('#bm-input-py').value);
+
+          const [lat, lng] = coordsToLatLng(coordTlX, coordTlY, coordPxX, coordPxY);
+
+          // Use navigation method setting
+          const navigationMethod = Settings.getNavigationMethod();
+
+          if (navigationMethod === 'openurl') {
+            const zoom = 13.62;
+            const url = `https://wplace.live/?lat=${lat}&lng=${lng}&zoom=${zoom}`;
+            window.location.href = url;
+          } else {
+            flyToLatLng(lat, lng);
+          }
+
+        });
+      }).buildElement()
+    .addButton({ 'id': 'bm-button-screenshot', 'className': 'bm-help', 'innerHTML': '📸', 'title': 'Screenshot current template area (auto-detects coordinates)' },
+      (instance, button) => {
+        button.addEventListener('click', async () => {
+          try {
+            // SMART DETECTION: Get currently displayed template or first enabled template
+            let t = null;
+
+            if (templateManager.smartDetectionEnabled && templateManager.currentlyDisplayedTemplates.size === 1) {
+              // Use the currently displayed template for screenshot
+              const displayedTemplateKey = Array.from(templateManager.currentlyDisplayedTemplates)[0];
+              t = templateManager.templatesArray.find(template => `${template.sortID} ${template.authorID}` === displayedTemplateKey);
+            }
+
+            // Fallback: Use first enabled template
+            if (!t && templateManager.templatesArray) {
+              for (const template of templateManager.templatesArray) {
+                const templateKey = `${template.sortID} ${template.authorID}`;
+                if (templateManager.isTemplateEnabled(templateKey)) {
+                  t = template;
+                  break;
+                }
+              }
+            }
+
+            // Final fallback: Use first template (backward compatibility)
+            if (!t) {
+              t = templateManager.templatesArray?.[0];
+            }
+
+            if (!t) {
+              instance.handleDisplayError('No template loaded.');
+              return;
+            }
+
+            // Auto-detect coordinates from active template
+            if (!t.coords || t.coords.length !== 4) {
+              instance.handleDisplayError('Template coordinates not available. Create a template first.');
+              return;
+            }
+
+            const [tx, ty, px, py] = t.coords;
+            if (!Number.isFinite(tx) || !Number.isFinite(ty) || !Number.isFinite(px) || !Number.isFinite(py)) {
+              instance.handleDisplayError('Invalid template coordinates detected.');
+              return;
+            }
+
+            if (!t.imageWidth || !t.imageHeight) {
+              // Attempt to infer from chunked tiles if missing
+              try {
+                const tiles = Object.keys(t.chunked || {});
+                if (tiles.length > 0) {
+                  let minScaledX = Infinity, minScaledY = Infinity, maxScaledX = 0, maxScaledY = 0;
+                  const scale = templateManager.drawMult || 3;
+                  const tileSizeScaled = (templateManager.tileSize || 1000) * scale;
+                  for (const key of tiles) {
+                    const bmp = t.chunked[key];
+                    const [tX, tY, pX, pY] = key.split(',').map(Number);
+                    const startX = tX * tileSizeScaled + pX * scale;
+                    const startY = tY * tileSizeScaled + pY * scale;
+                    const endX = startX + bmp.width;
+                    const endY = startY + bmp.height;
+                    if (startX < minScaledX) minScaledX = startX;
+                    if (startY < minScaledY) minScaledY = startY;
+                    if (endX > maxScaledX) maxScaledX = endX;
+                    if (endY > maxScaledY) maxScaledY = endY;
+                  }
+                  t.imageWidth = Math.round((maxScaledX - minScaledX) / scale);
+                  t.imageHeight = Math.round((maxScaledY - minScaledY) / scale);
+                }
+              } catch (_) { }
+            }
+            if (!t.imageWidth || !t.imageHeight) {
+              instance.handleDisplayError('Template size unavailable; create or reload the template first.');
+              return;
+            }
+            const base = apiManager?.tileServerBase;
+            if (!base) {
+              instance.handleDisplayError('Tile server not detected yet; open the board to load tiles.');
+              return;
+            }
+            const blob = await templateManager.buildTemplateAreaScreenshot(base, [tx, ty, px, py], [t.imageWidth, t.imageHeight]);
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const ts = new Date().toISOString().replace(/[:.]/g, '-');
+            a.download = `wplace_template_area_${String(tx).padStart(4, '0')},${String(ty).padStart(4, '0')}_${ts}.png`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+            instance.handleDisplayStatus(`📸 Saved template area screenshot!\nLocation: Tile ${tx},${ty} • Pixel ${px},${py}\nSize: ${t.imageWidth}×${t.imageHeight}px`);
+          } catch (e) {
+            console.error(e);
+            instance.handleDisplayError('Failed to create screenshot');
+          }
+        });
+      }
+    ).buildElement()
+    // Clear All Storage button
+    .addButton({ 'id': 'bm-button-clear-storage', 'className': 'bm-help', innerHTML: icons.clearStorageIcon, 'title': 'Clear All Storage' }, (instance, button) => {
+      button.addEventListener('click', () => {
+        clearAllStorage(instance);
+      });
+    }).buildElement()
+    // Import Templates button
+    .addButton({ 'id': 'bm-button-import', 'className': 'bm-help', innerHTML: icons.uploadIcon, 'title': 'Import Templates' }, (instance, button) => {
+      button.addEventListener('click', () => {
+        showImportDialog(instance);
+      });
+    }).buildElement()
+    .buildElement()
+    .addDiv({ 'style': 'position: absolute; left: 0; bottom: 2px; text-align: left; padding: 0; pointer-events: auto; user-select: text; line-height: 12px;' }).
+    addSmall({ 'textContent': 'Made by SwingTheVine | Fork Seris0', 'style': 'color: #94a3b8; font-size: 0.74em; opacity: 0.85;' }).buildElement()
+    .buildElement()
+    .buildElement()
+    .buildElement()
+    .buildOverlay(document.body);
 }
 
 function buildOverlayTabTemplate() {
-  overlayTabTemplate.addDiv({'id': 'bm-tab-template', 'style': 'top: 20%; left: 10%;'})
-      .addDiv()
-        .addDiv({'className': 'bm-dragbar'}).buildElement()
-        .addButton({'className': 'bm-button-minimize', 'textContent': '↑'},
-          (instance, button) => {
-            button.onclick = () => {
-              let isMinimized = false;
-              if (button.textContent == '↑') {
-                button.textContent = '↓';
-              } else {
-                button.textContent = '↑';
-                isMinimized = true;
-              }
-
-              
-            }
+  overlayTabTemplate.addDiv({ 'id': 'bm-tab-template', 'style': 'top: 20%; left: 10%;' })
+    .addDiv()
+    .addDiv({ 'className': 'bm-dragbar' }).buildElement()
+    .addButton({ 'className': 'bm-button-minimize', 'textContent': '↑' },
+      (instance, button) => {
+        button.onclick = () => {
+          let isMinimized = false;
+          if (button.textContent == '↑') {
+            button.textContent = '↓';
+          } else {
+            button.textContent = '↑';
+            isMinimized = true;
           }
-        ).buildElement()
-      .buildElement()
+
+
+        }
+      }
+    ).buildElement()
     .buildElement()
-  .buildOverlay();
+    .buildElement()
+    .buildOverlay();
 }
 
 
@@ -3806,7 +3806,7 @@ function buildColorFilterOverlay() {
   // Import the color palette from utils
   import('./utils.js').then(utils => {
     const colorPalette = utils.colorpalette;
-    
+
     // Get enhanced pixel analysis data
     const pixelStats = templateManager.calculateRemainingPixelsByColor(0, true); // Only enabled templates
     // Update native palette badges as well (if settings enabled)
@@ -3815,16 +3815,16 @@ function buildColorFilterOverlay() {
     } catch (e) {
       consoleWarn('Failed to update palette left badges:', e);
     }
-    
+
     // Calculate overall progress
     let totalRequired = 0;
     let totalPainted = 0;
     let totalNeedCrosshair = 0;
     let totalWrong = 0;
-    
+
     // Get excluded colors from localStorage (used for both wrong pixels and main calculation)
     const excludedColors = JSON.parse(localStorage.getItem('bmcf-excluded-colors') || '[]');
-    
+
     // Get wrong pixels from tile progress data (only once) - FILTERED BY ENABLED TEMPLATES
     if (templateManager.tileProgress && templateManager.tileProgress.size > 0) {
       // Get list of enabled templates for filtering (same logic as calculateRemainingPixelsByColor)
@@ -3837,19 +3837,19 @@ function buildColorFilterOverlay() {
           }
         }
       }
-      
+
       for (const [tileKey, tileStats] of templateManager.tileProgress.entries()) {
         // Filter tiles by enabled templates only (same logic as calculateRemainingPixelsByColor)
         let shouldIncludeTile = true;
-        
+
         if (enabledTemplateKeys.size > 0) {
           shouldIncludeTile = false;
           const [tileX, tileY] = tileKey.split(',').map(coord => parseInt(coord));
-          
+
           for (const template of templateManager.templatesArray) {
             const templateKey = `${template.sortID} ${template.authorID}`;
             if (!enabledTemplateKeys.has(templateKey)) continue;
-            
+
             if (template.chunked) {
               for (const chunkKey of Object.keys(template.chunked)) {
                 const [chunkTileX, chunkTileY] = chunkKey.split(',').map(coord => parseInt(coord));
@@ -3862,9 +3862,9 @@ function buildColorFilterOverlay() {
             if (shouldIncludeTile) break;
           }
         }
-        
+
         if (!shouldIncludeTile) continue;
-        
+
         if (tileStats.colorBreakdown) {
           for (const [colorKey, colorStats] of Object.entries(tileStats.colorBreakdown)) {
             // Skip excluded colors from wrong pixels calculation too
@@ -3876,18 +3876,18 @@ function buildColorFilterOverlay() {
         }
       }
     }
-    
+
     for (const [colorKey, stats] of Object.entries(pixelStats)) {
       // Skip excluded colors from progress calculation
       if (excludedColors.includes(colorKey)) {
         continue;
       }
-      
+
       totalRequired += stats.totalRequired || 0;
       totalPainted += stats.painted || 0;
       totalNeedCrosshair += stats.needsCrosshair || 0;
     }
-    
+
     // Apply wrong color logic based on settings
     let overallProgress, displayPainted, displayRequired;
 
@@ -3992,7 +3992,7 @@ function buildColorFilterOverlay() {
       const appliedExcluded = localStorage.getItem('bmcf-excluded-colors') || '[]';
       localStorage.setItem('bmcf-excluded-colors-pending', appliedExcluded);
     }
-    
+
     // Create the color filter overlay
     const colorFilterOverlay = document.createElement('div');
     colorFilterOverlay.id = 'bm-color-filter-overlay';
@@ -4090,13 +4090,13 @@ function buildColorFilterOverlay() {
       closeButton.style.transform = '';
       closeButton.style.boxShadow = '';
     };
-    
+
     // Prevent hover effects on touch by immediately resetting styles on touchstart
     closeButton.addEventListener('touchstart', () => {
       closeButton.style.transform = '';
       closeButton.style.boxShadow = '';
     }, { passive: true });
-    
+
     closeButton.onclick = () => {
       // Discard pending changes when closing without applying
       localStorage.removeItem('bmcf-excluded-colors-pending');
@@ -4134,7 +4134,7 @@ function buildColorFilterOverlay() {
       settingsButton.style.background = 'linear-gradient(135deg, var(--slate-600), var(--slate-700))';
       settingsButton.style.boxShadow = '';
     };
-    
+
     // Prevent hover effects on touch by immediately resetting styles on touchstart
     settingsButton.addEventListener('touchstart', () => {
       settingsButton.style.transform = '';
@@ -4164,11 +4164,11 @@ function buildColorFilterOverlay() {
       position: relative;
       overflow: hidden;
     `;
-    
+
     // State variable for current view mode - restore from localStorage
     const savedPreference = localStorage.getItem('bmcf-view-preference');
     let isListView = savedPreference === 'list';
-    
+
     // Add hover effects but prevent them on touch devices
     viewToggleButton.onmouseover = () => {
       viewToggleButton.style.transform = 'translateY(-1px) scale(1.05)';
@@ -4180,7 +4180,7 @@ function buildColorFilterOverlay() {
       viewToggleButton.style.background = 'linear-gradient(135deg, var(--slate-600), var(--slate-700))';
       viewToggleButton.style.boxShadow = '';
     };
-    
+
     // Prevent hover effects on touch by immediately resetting styles on touchstart
     viewToggleButton.addEventListener('touchstart', () => {
       viewToggleButton.style.transform = '';
@@ -4191,10 +4191,10 @@ function buildColorFilterOverlay() {
     // Toggle view functionality
     const toggleView = () => {
       isListView = !isListView;
-      
+
       // Save preference to localStorage
       localStorage.setItem('bmcf-view-preference', isListView ? 'list' : 'grid');
-      
+
       // Use CSS classes to control visibility - this prevents DOM manipulation conflicts
       if (isListView) {
         colorViewContainer.classList.add('list-mode');
@@ -4205,22 +4205,22 @@ function buildColorFilterOverlay() {
         viewToggleButton.innerHTML = '📋'; // List icon
         viewToggleButton.title = 'Switch to List view';
       }
-      
+
       // Force layout recalculation
       colorViewContainer.offsetHeight;
-      
+
       // Re-apply current filter to the new view
       if (typeof filterSelect !== 'undefined' && filterSelect.value) {
         applyFilter(filterSelect.value);
       }
-      
+
       // Re-apply current search to the new view
       if (typeof searchInput !== 'undefined' && searchInput.value.trim()) {
         const searchTerm = searchInput.value.toLowerCase().trim();
-        const currentViewItems = isListView ? 
-          Array.from(colorList.querySelectorAll('[data-color-item]')) : 
+        const currentViewItems = isListView ?
+          Array.from(colorList.querySelectorAll('[data-color-item]')) :
           Array.from(colorGrid.querySelectorAll('[data-color-item]'));
-        
+
         currentViewItems.forEach(item => {
           const colorName = item.getAttribute('data-color-name').toLowerCase();
           if (colorName.includes(searchTerm)) {
@@ -4246,7 +4246,7 @@ function buildColorFilterOverlay() {
         viewToggleButton.innerHTML = '📋'; // List icon
         viewToggleButton.title = 'Switch to List view';
       }
-      
+
       // Force layout recalculation
       colorViewContainer.offsetHeight;
     };
@@ -4312,7 +4312,7 @@ function buildColorFilterOverlay() {
       position: relative;
       overflow: hidden;
     `;
-    
+
     // Add subtle background pattern
     progressSummary.innerHTML = `
       <div style="
@@ -4422,7 +4422,7 @@ function buildColorFilterOverlay() {
       const enabled = includeWrongProgressCheckbox.checked;
       await templateManager.setIncludeWrongColorsInProgress(enabled);
       overlayMain.handleDisplayStatus(`Include wrong colors in progress ${enabled ? 'enabled' : 'disabled'}!`);
-      
+
       // Force refresh color filter overlay to update progress calculations immediately
       buildColorFilterOverlay();
     });
@@ -4537,12 +4537,12 @@ function buildColorFilterOverlay() {
       colorItems.forEach(item => {
         const colorName = item.getAttribute('data-color-name').toLowerCase();
         const colorRgb = item.getAttribute('data-color-rgb');
-        
+
         // Search by name or RGB values
         const matchesName = colorName.includes(term);
         const matchesRgb = colorRgb.includes(term);
         const matchesRgbFormatted = colorRgb.replace(/,/g, ' ').includes(term);
-        
+
         if (term === '' || matchesName || matchesRgb || matchesRgbFormatted) {
           item.style.display = 'flex';
           visibleCount++;
@@ -4745,7 +4745,7 @@ function buildColorFilterOverlay() {
 
     mainButtonsContainer.appendChild(enableAllButton);
     mainButtonsContainer.appendChild(disableAllButton);
-    
+
     enhancedSection.appendChild(enhancedInfo);
     enhancedSection.appendChild(mainButtonsContainer);
     enhancedSection.appendChild(disableAllEnhancedButton);
@@ -4789,7 +4789,7 @@ function buildColorFilterOverlay() {
       const enabled = enhanceWrongCheckbox.checked;
       await templateManager.setEnhanceWrongColors(enabled);
       overlayMain.handleDisplayStatus(`Wrong colors crosshair ${enabled ? 'enabled' : 'disabled'}!`);
-      
+
       // Force template redraw to apply enhanced mode changes
       if (window.forceTemplateRedraw) {
         window.forceTemplateRedraw();
@@ -4844,7 +4844,7 @@ function buildColorFilterOverlay() {
     colorPalette.forEach((colorInfo, index) => {
       // Flag to prevent sync loops between grid and list
       let isSyncing = false;
-      
+
       const colorItem = document.createElement('div');
       colorItem.className = 'bmcf-card';
       const rgb = colorInfo.rgb;
@@ -4852,12 +4852,12 @@ function buildColorFilterOverlay() {
       const isFreeColor = colorInfo.free;
       const isDisabled = currentTemplate.isColorDisabled(rgb);
       const isEnhanced = currentTemplate.isColorEnhanced ? currentTemplate.isColorEnhanced(rgb) : false;
-      
+
       // Add data attributes for search functionality
       colorItem.setAttribute('data-color-item', 'true');
       colorItem.setAttribute('data-color-name', colorInfo.name);
       colorItem.setAttribute('data-color-rgb', rgb.join(','));
-      
+
       colorItem.style.cssText = `
         background: rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]});
         border: 3px solid ${isDisabled ? '#f44336' : '#4caf50'};
@@ -5023,7 +5023,7 @@ function buildColorFilterOverlay() {
       const appliedExcluded = JSON.parse(localStorage.getItem('bmcf-excluded-colors') || '[]');
       const pendingExcluded = JSON.parse(localStorage.getItem('bmcf-excluded-colors-pending') || JSON.stringify(appliedExcluded));
       const isExcluded = pendingExcluded.includes(colorKey);
-      
+
       if (isExcluded) {
         excludeIcon.textContent = "🚫";
         excludeIcon.style.opacity = '1';
@@ -5034,7 +5034,7 @@ function buildColorFilterOverlay() {
         excludeIcon.style.opacity = '1';
         excludeIcon.style.transform = 'scale(1.1)';
       };
-      
+
       excludeIcon.onmouseleave = () => {
         excludeIcon.style.opacity = isExcluded ? '1' : '0.7';
         excludeIcon.style.transform = 'scale(1)';
@@ -5043,7 +5043,7 @@ function buildColorFilterOverlay() {
       excludeIcon.onclick = (e) => {
         e.stopPropagation();
         const pendingExcluded = JSON.parse(localStorage.getItem('bmcf-excluded-colors-pending') || JSON.stringify(JSON.parse(localStorage.getItem('bmcf-excluded-colors') || '[]')));
-        
+
         if (pendingExcluded.includes(colorKey)) {
           // Remove from pending excluded list
           const newPendingExcluded = pendingExcluded.filter(c => c !== colorKey);
@@ -5067,7 +5067,7 @@ function buildColorFilterOverlay() {
           listExcludeIcon.style.background = 'rgba(244, 67, 54, 0.8)';
           listExcludeIcon.style.opacity = '1';
         }
-        
+
         // Show status message (no automatic refresh)
         if (typeof overlayMain !== 'undefined' && overlayMain.handleDisplayStatus) {
           overlayMain.handleDisplayStatus(`Color ${pendingExcluded.includes(colorKey) ? 'excluded from' : 'included in'} progress calculation - click Apply Colors to confirm`);
@@ -5078,7 +5078,7 @@ function buildColorFilterOverlay() {
       const stats = pixelStats[colorKey];
       const pixelStatsDisplay = document.createElement('div');
       pixelStatsDisplay.className = 'bmcf-stats';
-      
+
       if (stats && stats.totalRequired > 0) {
         // Get wrong pixels for this specific color from tile progress data - FILTERED BY ENABLED TEMPLATES
         let wrongPixelsForColor = 0;
@@ -5093,19 +5093,19 @@ function buildColorFilterOverlay() {
               }
             }
           }
-          
+
           for (const [tileKey, tileStats] of templateManager.tileProgress.entries()) {
             // Filter tiles by enabled templates only
             let shouldIncludeTile = true;
-            
+
             if (enabledTemplateKeys.size > 0) {
               shouldIncludeTile = false;
               const [tileX, tileY] = tileKey.split(',').map(coord => parseInt(coord));
-              
+
               for (const template of templateManager.templatesArray) {
                 const templateKey = `${template.sortID} ${template.authorID}`;
                 if (!enabledTemplateKeys.has(templateKey)) continue;
-                
+
                 if (template.chunked) {
                   for (const chunkKey of Object.keys(template.chunked)) {
                     const [chunkTileX, chunkTileY] = chunkKey.split(',').map(coord => parseInt(coord));
@@ -5118,9 +5118,9 @@ function buildColorFilterOverlay() {
                 if (shouldIncludeTile) break;
               }
             }
-            
+
             if (!shouldIncludeTile) continue;
-            
+
             if (tileStats.colorBreakdown && tileStats.colorBreakdown[colorKey]) {
               wrongPixelsForColor += tileStats.colorBreakdown[colorKey].wrong || 0;
             }
@@ -5129,7 +5129,7 @@ function buildColorFilterOverlay() {
 
         // Apply wrong color logic to individual color progress
         let displayPainted, displayRequired, displayPercentage, displayRemaining;
-        
+
         if (templateManager.getIncludeWrongColorsInProgress()) {
           // When wrong colors are included, stats.painted already contains the effective painted count
           // so we don't need to add wrongPixelsForColor again (that would be double counting)
@@ -5144,13 +5144,13 @@ function buildColorFilterOverlay() {
           displayPercentage = stats.percentage || 0;
           displayRemaining = stats.totalRequired - stats.painted;
         }
-        
+
         // Add data attributes for filtering/sorting
         colorItem.setAttribute('data-wrong-count', wrongPixelsForColor.toString());
         colorItem.setAttribute('data-missing-count', displayRemaining.toString());
         colorItem.setAttribute('data-total-count', displayRequired.toString());
         colorItem.setAttribute('data-painted-count', displayPainted.toString());
-        
+
         // Always render full stats inside the Template Color overlay
         let displayText = `${displayPainted.toLocaleString()}/${displayRequired.toLocaleString()} (${displayPercentage}%)`;
         if (templateManager.getIncludeWrongColorsInProgress() && wrongPixelsForColor > 0) {
@@ -5190,7 +5190,7 @@ function buildColorFilterOverlay() {
         `;
         progressTrack.appendChild(progressFill);
         colorItem.appendChild(progressTrack);
-        
+
       } else {
         pixelStatsDisplay.innerHTML = `
           <div style="font-size: 0.65em; color: rgba(255,255,255,0.6); text-shadow: 1px 1px 2px rgba(0,0,0,0.8);">
@@ -5198,7 +5198,7 @@ function buildColorFilterOverlay() {
           </div>
         `;
       }
-      
+
       pixelStatsDisplay.style.cssText = `
         z-index: 1;
         position: relative;
@@ -5213,7 +5213,7 @@ function buildColorFilterOverlay() {
 
       colorItem.appendChild(colorName);
       colorItem.appendChild(pixelStatsDisplay);
-      if (!isFreeColor){
+      if (!isFreeColor) {
         colorItem.appendChild(dropletIcon);
       }
       colorItem.appendChild(excludeIcon);
@@ -5222,7 +5222,7 @@ function buildColorFilterOverlay() {
       colorClickArea.onclick = (e) => {
         e.stopPropagation(); // Prevent bubbling
         if (isSyncing) return; // Prevent sync loops
-        
+
         const wasDisabled = currentTemplate.isColorDisabled(rgb);
         if (wasDisabled) {
           currentTemplate.enableColor(rgb);
@@ -5230,7 +5230,7 @@ function buildColorFilterOverlay() {
           const overlay = colorClickArea.querySelector('div[style*="position: absolute"]');
           if (overlay) overlay.remove();
           enhancedCheckbox.disabled = false;
-          
+
           // Sync to list item
           isSyncing = true;
           listItem.style.border = '2px solid #4caf50';
@@ -5260,7 +5260,7 @@ function buildColorFilterOverlay() {
           colorClickArea.appendChild(overlay);
           enhancedCheckbox.disabled = true;
           enhancedCheckbox.checked = false;
-          
+
           // Sync to list item
           isSyncing = true;
           listItem.style.border = '2px solid #f44336';
@@ -5270,7 +5270,7 @@ function buildColorFilterOverlay() {
           listEnhancedLabel.style.color = 'rgba(255,255,255,0.6)';
           isSyncing = false;
         }
-        
+
         // Refresh template display in real-time
         refreshTemplateDisplay().catch(error => {
           consoleError('Error refreshing template:', error);
@@ -5285,7 +5285,7 @@ function buildColorFilterOverlay() {
         } else {
           currentTemplate.disableColorEnhanced(rgb);
         }
-        
+
         // Refresh template display in real-time
         refreshTemplateDisplay().catch(error => {
           consoleError('Error refreshing enhanced mode:', error);
@@ -5306,12 +5306,12 @@ function buildColorFilterOverlay() {
       // Create corresponding list item based on the log.txt example
       const listItem = document.createElement('div');
       listItem.className = 'bmcf-list-item';
-      
+
       // Add data attributes for search functionality
       listItem.setAttribute('data-color-item', 'true');
       listItem.setAttribute('data-color-name', colorInfo.name);
       listItem.setAttribute('data-color-rgb', rgb.join(','));
-      
+
       // Copy stats data attributes from grid item to list item
       if (colorItem.hasAttribute('data-wrong-count')) {
         listItem.setAttribute('data-wrong-count', colorItem.getAttribute('data-wrong-count'));
@@ -5319,7 +5319,7 @@ function buildColorFilterOverlay() {
         listItem.setAttribute('data-total-count', colorItem.getAttribute('data-total-count'));
         listItem.setAttribute('data-painted-count', colorItem.getAttribute('data-painted-count'));
       }
-      
+
       listItem.style.cssText = `
         display: flex;
         align-items: center;
@@ -5335,7 +5335,7 @@ function buildColorFilterOverlay() {
         min-height: 50px;
         opacity: ${isDisabled ? '0.7' : '1'};
       `;
-      
+
       // Color swatch (small square)
       const colorSwatch = document.createElement('div');
       colorSwatch.style.cssText = `
@@ -5357,7 +5357,7 @@ function buildColorFilterOverlay() {
         gap: 4px;
         min-width: 0;
       `;
-      
+
       // Color click area for enable/disable (covers whole item)
       const listColorClickArea = document.createElement('div');
       listColorClickArea.style.cssText = `
@@ -5396,13 +5396,13 @@ function buildColorFilterOverlay() {
       // Stats - get correct values from data attributes
       let mainStatsText = '';
       let leftValue = 0;
-      
+
       // Get values from data attributes (same as grid item)
       const totalCount = parseInt(listItem.getAttribute('data-total-count') || '0');
       const paintedCount = parseInt(listItem.getAttribute('data-painted-count') || '0');
       const missingCount = parseInt(listItem.getAttribute('data-missing-count') || '0');
       const wrongCount = parseInt(listItem.getAttribute('data-wrong-count') || '0');
-      
+
       if (totalCount > 0) {
         const percentage = totalCount > 0 ? Math.round(((totalCount - missingCount) / totalCount) * 100) : 0;
         mainStatsText = `${paintedCount.toLocaleString()}/${totalCount.toLocaleString()} (${percentage}%)`;
@@ -5449,12 +5449,12 @@ function buildColorFilterOverlay() {
       if (mainStatsText) {
         topRow.appendChild(mainStats);
       }
-      
+
       infoContainer.appendChild(topRow);
       if (mainStatsText !== 'Not Used') {
         infoContainer.appendChild(bottomRow);
       }
-      
+
       // Controls container (right side)
       const listControlsContainer = document.createElement('div');
       listControlsContainer.style.cssText = `
@@ -5464,7 +5464,7 @@ function buildColorFilterOverlay() {
         z-index: 2;
         position: relative;
       `;
-      
+
       // Enhanced mode checkbox
       const listEnhancedCheckbox = document.createElement('input');
       listEnhancedCheckbox.type = 'checkbox';
@@ -5500,7 +5500,7 @@ function buildColorFilterOverlay() {
       listEnhancedCheckbox.onchange = (e) => {
         e.stopPropagation();
         const isNowEnhanced = listEnhancedCheckbox.checked;
-        
+
         if (isNowEnhanced) {
           currentTemplate.enableColorEnhanced(rgb);
           listEnhancedLabel.style.color = '#ffd700';
@@ -5512,12 +5512,12 @@ function buildColorFilterOverlay() {
           // Also update grid checkbox
           enhancedCheckbox.checked = false;
         }
-        
+
         refreshTemplateDisplay().catch(error => {
           consoleError('Error refreshing enhanced mode:', error);
         });
       };
-      
+
       // Eyedropper icon for non-free colors
       if (!isFreeColor) {
         const listDropletIcon = document.createElement('div');
@@ -5530,10 +5530,10 @@ function buildColorFilterOverlay() {
           user-select: none;
           transition: opacity 0.2s ease;
         `;
-        
+
         listDropletIcon.onmouseenter = () => listDropletIcon.style.opacity = '1';
         listDropletIcon.onmouseleave = () => listDropletIcon.style.opacity = '0.7';
-        
+
         listDropletIcon.onclick = (e) => {
           e.stopPropagation();
           const colorButtons = document.querySelectorAll(`button[id^="color-"]`);
@@ -5549,10 +5549,10 @@ function buildColorFilterOverlay() {
             }
           });
         };
-        
+
         listControlsContainer.appendChild(listDropletIcon);
       }
-      
+
       // Exclude from progress icon for list view
       const listExcludeIcon = document.createElement('div');
       listExcludeIcon.textContent = "👁️";
@@ -5575,7 +5575,7 @@ function buildColorFilterOverlay() {
       const listAppliedExcluded = JSON.parse(localStorage.getItem('bmcf-excluded-colors') || '[]');
       const listPendingExcluded = JSON.parse(localStorage.getItem('bmcf-excluded-colors-pending') || JSON.stringify(listAppliedExcluded));
       const listIsExcluded = listPendingExcluded.includes(colorKey);
-      
+
       if (listIsExcluded) {
         listExcludeIcon.textContent = "🚫";
         listExcludeIcon.style.opacity = '1';
@@ -5586,7 +5586,7 @@ function buildColorFilterOverlay() {
         listExcludeIcon.style.opacity = '1';
         listExcludeIcon.style.transform = 'scale(1.1)';
       };
-      
+
       listExcludeIcon.onmouseleave = () => {
         listExcludeIcon.style.opacity = listIsExcluded ? '1' : '0.7';
         listExcludeIcon.style.transform = 'scale(1)';
@@ -5595,7 +5595,7 @@ function buildColorFilterOverlay() {
       listExcludeIcon.onclick = (e) => {
         e.stopPropagation();
         const pendingExcluded = JSON.parse(localStorage.getItem('bmcf-excluded-colors-pending') || JSON.stringify(JSON.parse(localStorage.getItem('bmcf-excluded-colors') || '[]')));
-        
+
         if (pendingExcluded.includes(colorKey)) {
           // Remove from pending excluded list
           const newPendingExcluded = pendingExcluded.filter(c => c !== colorKey);
@@ -5619,17 +5619,17 @@ function buildColorFilterOverlay() {
           excludeIcon.style.background = 'rgba(244, 67, 54, 0.8)';
           excludeIcon.style.opacity = '1';
         }
-        
+
         // Show status message (no automatic refresh)
         if (typeof overlayMain !== 'undefined' && overlayMain.handleDisplayStatus) {
           overlayMain.handleDisplayStatus(`Color ${pendingExcluded.includes(colorKey) ? 'excluded from' : 'included in'} progress calculation - click Apply Colors to confirm`);
         }
       };
-      
+
       listControlsContainer.appendChild(listExcludeIcon);
       listControlsContainer.appendChild(listEnhancedCheckbox);
       listControlsContainer.appendChild(listEnhancedLabel);
-      
+
       // Assemble the list item
       listItem.appendChild(colorSwatch);
       listItem.appendChild(infoContainer);
@@ -5640,14 +5640,14 @@ function buildColorFilterOverlay() {
       listColorClickArea.onclick = (e) => {
         e.stopPropagation();
         if (isSyncing) return; // Prevent sync loops
-        
+
         const wasDisabled = currentTemplate.isColorDisabled(rgb);
         if (wasDisabled) {
           currentTemplate.enableColor(rgb);
           listItem.style.border = '2px solid #4caf50';
           listItem.style.opacity = '1';
           listEnhancedCheckbox.disabled = false;
-          
+
           // Sync to grid item
           isSyncing = true;
           colorItem.style.border = '3px solid #4caf50';
@@ -5662,7 +5662,7 @@ function buildColorFilterOverlay() {
           listEnhancedCheckbox.disabled = true;
           listEnhancedCheckbox.checked = false;
           listEnhancedLabel.style.color = 'rgba(255,255,255,0.6)';
-          
+
           // Sync to grid item
           isSyncing = true;
           colorItem.style.border = '3px solid #f44336';
@@ -5688,7 +5688,7 @@ function buildColorFilterOverlay() {
           enhancedCheckbox.checked = false;
           isSyncing = false;
         }
-        
+
         refreshTemplateDisplay().catch(error => {
           consoleError('Error refreshing template:', error);
         });
@@ -5706,9 +5706,9 @@ function buildColorFilterOverlay() {
       const gridItems = Array.from(colorGrid.querySelectorAll('[data-color-item]'));
       const listItems = Array.from(colorList.querySelectorAll('[data-color-item]'));
       const colorItems = isListView ? listItems : gridItems;
-      
+
       // Original orders are already initialized after creating all items
-      
+
       if (filterType === 'default') {
         // Restore original order and show all items
         colorItems.forEach(item => {
@@ -5717,13 +5717,13 @@ function buildColorFilterOverlay() {
         // Restore original DOM order
         const container = isListView ? colorList : colorGrid;
         const originalItems = isListView ? originalListOrder : originalGridOrder;
-        
+
         originalItems.forEach(item => {
           container.appendChild(item);
         });
         return;
       }
-      
+
       if (filterType === 'enhanced') {
         // Filter to show only enhanced colors
         colorItems.forEach(item => {
@@ -5736,12 +5736,12 @@ function buildColorFilterOverlay() {
         });
         return;
       }
-      
+
       // Show all items for sorting
       colorItems.forEach(item => {
         item.style.display = 'flex';
       });
-      
+
       colorItems.sort((a, b) => {
         const aWrong = parseInt(a.getAttribute('data-wrong-count') || '0');
         const bWrong = parseInt(b.getAttribute('data-wrong-count') || '0');
@@ -5755,22 +5755,22 @@ function buildColorFilterOverlay() {
         const bPercentage = bTotal > 0 ? ((bTotal - bMissing) / bTotal) * 100 : 0;
 
         switch (filterType) {
-          case 'premium': 
+          case 'premium':
             // Get color RGB from data attributes
             const aRgb = a.getAttribute('data-color-rgb');
             const bRgb = b.getAttribute('data-color-rgb');
-            
+
             // Find colors in utils.colorpalette
             const aColor = colorPalette.find(c => `${c.rgb[0]},${c.rgb[1]},${c.rgb[2]}` === aRgb);
             const bColor = colorPalette.find(c => `${c.rgb[0]},${c.rgb[1]},${c.rgb[2]}` === bRgb);
-            
+
             const aIsPremium = aColor && aColor.free === false;
             const bIsPremium = bColor && bColor.free === false;
-            
+
             // Premium colors first
             if (aIsPremium && !bIsPremium) return -1;
             if (!aIsPremium && bIsPremium) return 1;
-            
+
             // If both are premium or both are free, sort by most pixels missing
             return bMissing - aMissing;
           case 'wrong-desc': return bWrong - aWrong;
@@ -5806,7 +5806,7 @@ function buildColorFilterOverlay() {
       });
       colorFilterOverlay.remove();
       overlayMain.handleDisplayStatus('Enabling all colors...');
-      
+
       try {
         await refreshTemplateDisplay();
         buildColorFilterOverlay(); // Rebuild to reflect changes
@@ -5822,7 +5822,7 @@ function buildColorFilterOverlay() {
       });
       colorFilterOverlay.remove();
       overlayMain.handleDisplayStatus('Disabling all colors...');
-      
+
       try {
         await refreshTemplateDisplay();
         buildColorFilterOverlay(); // Rebuild to reflect changes
@@ -5837,26 +5837,26 @@ function buildColorFilterOverlay() {
       // Visual feedback - button click animation
       const originalBg = disableAllEnhancedButton.style.background;
       const originalText = disableAllEnhancedButton.textContent;
-      
+
       // Immediate click feedback
       disableAllEnhancedButton.style.background = '#dc3545'; // Red
       disableAllEnhancedButton.textContent = 'Disabling...';
       disableAllEnhancedButton.style.transform = 'scale(0.95)';
       disableAllEnhancedButton.style.transition = 'all 0.1s ease';
-      
+
       try {
         const tmpl = templateManager.templatesArray?.[0];
         if (tmpl && tmpl.enhancedColors && tmpl.enhancedColors.size > 0) {
           tmpl.enhancedColors.clear();
-          
+
           // Success feedback
           disableAllEnhancedButton.style.background = '#28a745'; // Green
           disableAllEnhancedButton.textContent = 'Disabled! ✓';
-          
+
           // Trigger template refresh
           await refreshTemplateDisplay();
           buildColorFilterOverlay();
-          
+
           // Reset button after 100ms
           setTimeout(() => {
             disableAllEnhancedButton.style.background = originalBg;
@@ -5867,7 +5867,7 @@ function buildColorFilterOverlay() {
           // No enhanced colors to disable
           disableAllEnhancedButton.style.background = '#ffc107'; // Yellow
           disableAllEnhancedButton.textContent = 'No Enhanced Colors';
-          
+
           setTimeout(() => {
             disableAllEnhancedButton.style.background = originalBg;
             disableAllEnhancedButton.textContent = originalText;
@@ -5878,13 +5878,13 @@ function buildColorFilterOverlay() {
         // Error feedback
         disableAllEnhancedButton.style.background = '#dc3545'; // Red
         disableAllEnhancedButton.textContent = 'Error! ✗';
-        
+
         setTimeout(() => {
           disableAllEnhancedButton.style.background = originalBg;
           disableAllEnhancedButton.textContent = originalText;
           disableAllEnhancedButton.style.transform = 'scale(1)';
         }, 100);
-        
+
         consoleError('Error disabling all enhanced colors:', error);
         overlayMain.handleDisplayError('Failed to disable all enhanced colors');
       }
@@ -5923,7 +5923,7 @@ function buildColorFilterOverlay() {
       applyButton.style.transform = 'translateY(0)';
       applyButton.style.boxShadow = '0 2px 8px rgba(33, 150, 243, 0.3)';
     };
-    
+
     refreshStatsButton.onclick = () => {
       // Apply pending excluded colors changes
       const pendingExcluded = localStorage.getItem('bmcf-excluded-colors-pending');
@@ -5942,10 +5942,10 @@ function buildColorFilterOverlay() {
         localStorage.setItem('bmcf-excluded-colors', pendingExcluded);
         localStorage.removeItem('bmcf-excluded-colors-pending');
       }
-      
+
       colorFilterOverlay.remove();
       overlayMain.handleDisplayStatus('Applying color filter...');
-      
+
       try {
         // Update mini tracker to reflect excluded colors
         updateMiniTracker();
@@ -6004,13 +6004,13 @@ function buildColorFilterOverlay() {
       min-height: auto;
       max-height: none;
     `;
-    
-    // Set flex layout when visible
-    compactList.setAttribute('data-flex-layout', 'true');
 
-    // Add header to compact list
-    const compactHeader = document.createElement('div');
-    compactHeader.style.cssText = `
+      // Set flex layout when visible
+      compactList.setAttribute('data-flex-layout', 'true');
+
+      // Add header to compact list
+      const compactHeader = document.createElement('div');
+      compactHeader.style.cssText = `
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -6020,18 +6020,18 @@ function buildColorFilterOverlay() {
       border-radius: 12px 12px 0 0;
       transition: border-radius 0.3s ease, border-bottom 0.3s ease;
     `;
-    
-    // Create left section with title and collapse arrow
-    const compactLeftSection = document.createElement('div');
-    compactLeftSection.style.cssText = `
+
+      // Create left section with title and collapse arrow
+      const compactLeftSection = document.createElement('div');
+      compactLeftSection.style.cssText = `
       display: flex;
       align-items: center;
       gap: 6px;
     `;
-    
-    const compactCollapseArrow = document.createElement('span');
-    compactCollapseArrow.innerHTML = '▼';
-    compactCollapseArrow.style.cssText = `
+
+      const compactCollapseArrow = document.createElement('span');
+      compactCollapseArrow.innerHTML = '▼';
+      compactCollapseArrow.style.cssText = `
       font-size: 10px;
       color: var(--bmcf-text-muted);
       transition: transform 0.2s ease;
@@ -6040,33 +6040,33 @@ function buildColorFilterOverlay() {
       padding: 2px 4px;
       border-radius: 3px;
     `;
-    
-    // Hover effect for arrow only
-    compactCollapseArrow.addEventListener('mouseenter', () => {
-      compactCollapseArrow.style.background = 'var(--slate-600)';
-    });
-    compactCollapseArrow.addEventListener('mouseleave', () => {
-      compactCollapseArrow.style.background = 'none';
-    });
-    
-    const compactTitle = document.createElement('span');
-    compactTitle.textContent = 'Color Toggle';
-    compactTitle.style.cssText = `
+
+      // Hover effect for arrow only
+      compactCollapseArrow.addEventListener('mouseenter', () => {
+        compactCollapseArrow.style.background = 'var(--slate-600)';
+      });
+      compactCollapseArrow.addEventListener('mouseleave', () => {
+        compactCollapseArrow.style.background = 'none';
+      });
+
+      const compactTitle = document.createElement('span');
+      compactTitle.textContent = 'Color Toggle';
+      compactTitle.style.cssText = `
       font-size: 12px;
       font-weight: 600;
       color: var(--bmcf-text);
       user-select: none;
       cursor: default;
     `;
-    
-    compactLeftSection.appendChild(compactCollapseArrow);
-    compactLeftSection.appendChild(compactTitle);
 
-    
-    const compactCloseBtn = document.createElement('button');
-    compactCloseBtn.innerHTML = '✕';
-    compactCloseBtn.title = 'Close';
-    compactCloseBtn.style.cssText = `
+      compactLeftSection.appendChild(compactCollapseArrow);
+      compactLeftSection.appendChild(compactTitle);
+
+
+      const compactCloseBtn = document.createElement('button');
+      compactCloseBtn.innerHTML = '✕';
+      compactCloseBtn.title = 'Close';
+      compactCloseBtn.style.cssText = `
       background: none;
       border: none;
       color: var(--bmcf-text-muted);
@@ -6076,20 +6076,20 @@ function buildColorFilterOverlay() {
       border-radius: 4px;
       transition: all 0.15s ease;
     `;
-    compactCloseBtn.onmouseover = () => compactCloseBtn.style.background = 'var(--slate-600)';
-    compactCloseBtn.onmouseout = () => compactCloseBtn.style.background = 'none';
-    compactCloseBtn.onclick = () => {
-      compactList.style.display = 'none';
-      compactListButton.style.background = 'linear-gradient(135deg, var(--slate-600), var(--slate-700))';
-    };
-    
-    compactHeader.appendChild(compactLeftSection);
-    compactHeader.appendChild(compactCloseBtn);
-    compactList.appendChild(compactHeader);
+      compactCloseBtn.onmouseover = () => compactCloseBtn.style.background = 'var(--slate-600)';
+      compactCloseBtn.onmouseout = () => compactCloseBtn.style.background = 'none';
+      compactCloseBtn.onclick = () => {
+        compactList.style.display = 'none';
+        compactListButton.style.background = 'linear-gradient(135deg, var(--slate-600), var(--slate-700))';
+      };
 
-    // Create collapsible content container
-    const compactCollapsibleContent = document.createElement('div');
-    compactCollapsibleContent.style.cssText = `
+      compactHeader.appendChild(compactLeftSection);
+      compactHeader.appendChild(compactCloseBtn);
+      compactList.appendChild(compactHeader);
+
+      // Create collapsible content container
+      const compactCollapsibleContent = document.createElement('div');
+      compactCollapsibleContent.style.cssText = `
       display: block;
       transition: height 0.3s ease, opacity 0.2s ease;
       overflow: hidden;
@@ -6097,87 +6097,87 @@ function buildColorFilterOverlay() {
       position: relative;
       z-index: 1;
     `;
-    compactList.appendChild(compactCollapsibleContent);
+      compactList.appendChild(compactCollapsibleContent);
 
-    // Load collapse state from localStorage
-    const COMPACT_COLLAPSE_KEY = 'bmcf-compact-collapsed';
-    let isCollapsed = localStorage.getItem(COMPACT_COLLAPSE_KEY) === 'true';
+      // Load collapse state from localStorage
+      const COMPACT_COLLAPSE_KEY = 'bmcf-compact-collapsed';
+      let isCollapsed = localStorage.getItem(COMPACT_COLLAPSE_KEY) === 'true';
 
-    // Apply initial collapse state
-    if (isCollapsed) {
-      compactCollapsibleContent.style.height = '0px';
-      compactCollapsibleContent.style.opacity = '0';
-      compactCollapsibleContent.style.pointerEvents = 'none';
-      compactCollapseArrow.style.transform = 'rotate(-90deg)';
-      // Fix border radius when collapsed
-      compactHeader.style.borderRadius = '12px';
-      compactHeader.style.borderBottom = 'none';
-    } else {
-      compactCollapsibleContent.style.height = 'auto';
-      compactCollapsibleContent.style.opacity = '1';
-      compactCollapsibleContent.style.pointerEvents = 'auto';
-      // Restore original border radius when expanded
-      compactHeader.style.borderRadius = '12px 12px 0 0';
-      compactHeader.style.borderBottom = '1px solid var(--bmcf-border)';
-    }
-
-    // Add collapse functionality - only on arrow click
-    compactCollapseArrow.addEventListener('click', (e) => {
-      e.stopPropagation(); // Prevent dragging when clicking to collapse
-      
-      isCollapsed = !isCollapsed;
-      localStorage.setItem(COMPACT_COLLAPSE_KEY, isCollapsed.toString());
-      
+      // Apply initial collapse state
       if (isCollapsed) {
-        // Get the natural height first
-        compactCollapsibleContent.style.height = 'auto';
-        const naturalHeight = compactCollapsibleContent.offsetHeight;
-        compactCollapsibleContent.style.height = naturalHeight + 'px';
-        
-        // Force a reflow to establish the starting height
-        compactCollapsibleContent.offsetHeight;
-        
-        // Then animate to collapsed state
-        requestAnimationFrame(() => {
-          compactCollapsibleContent.style.height = '0px';
-          compactCollapsibleContent.style.opacity = '0';
-          compactCollapsibleContent.style.pointerEvents = 'none';
-          compactCollapseArrow.style.transform = 'rotate(-90deg)';
-          // Fix border radius when collapsing
-          compactHeader.style.borderRadius = '12px';
-          compactHeader.style.borderBottom = 'none';
-        });
+        compactCollapsibleContent.style.height = '0px';
+        compactCollapsibleContent.style.opacity = '0';
+        compactCollapsibleContent.style.pointerEvents = 'none';
+        compactCollapseArrow.style.transform = 'rotate(-90deg)';
+        // Fix border radius when collapsed
+        compactHeader.style.borderRadius = '12px';
+        compactHeader.style.borderBottom = 'none';
       } else {
-        // First remove pointer-events and set opacity to start expanding
-        compactCollapsibleContent.style.pointerEvents = 'auto';
-        compactCollapsibleContent.style.opacity = '1';
-        
-        // Get the natural height by temporarily setting height to auto
-        const tempHeight = compactCollapsibleContent.style.height;
         compactCollapsibleContent.style.height = 'auto';
-        const naturalHeight = compactCollapsibleContent.offsetHeight;
-        compactCollapsibleContent.style.height = tempHeight;
-        
-        // Force reflow and animate to natural height
-        compactCollapsibleContent.offsetHeight;
-        compactCollapsibleContent.style.height = naturalHeight + 'px';
-        compactCollapseArrow.style.transform = 'rotate(0deg)';
-        // Restore border radius when expanding
+        compactCollapsibleContent.style.opacity = '1';
+        compactCollapsibleContent.style.pointerEvents = 'auto';
+        // Restore original border radius when expanded
         compactHeader.style.borderRadius = '12px 12px 0 0';
         compactHeader.style.borderBottom = '1px solid var(--bmcf-border)';
-        
-        // After transition, set to auto for dynamic resizing
-        setTimeout(() => {
-          if (!isCollapsed) {
-            compactCollapsibleContent.style.height = 'auto';
-          }
-        }, 300);
       }
-    });
 
-    // Add search bar section
-    const compactSearchContainer = document.createElement('div');
-    compactSearchContainer.style.cssText = `
+      // Add collapse functionality - only on arrow click
+      compactCollapseArrow.addEventListener('click', (e) => {
+        e.stopPropagation(); // Prevent dragging when clicking to collapse
+
+        isCollapsed = !isCollapsed;
+        localStorage.setItem(COMPACT_COLLAPSE_KEY, isCollapsed.toString());
+
+        if (isCollapsed) {
+          // Get the natural height first
+          compactCollapsibleContent.style.height = 'auto';
+          const naturalHeight = compactCollapsibleContent.offsetHeight;
+          compactCollapsibleContent.style.height = naturalHeight + 'px';
+
+          // Force a reflow to establish the starting height
+          compactCollapsibleContent.offsetHeight;
+
+          // Then animate to collapsed state
+          requestAnimationFrame(() => {
+            compactCollapsibleContent.style.height = '0px';
+            compactCollapsibleContent.style.opacity = '0';
+            compactCollapsibleContent.style.pointerEvents = 'none';
+            compactCollapseArrow.style.transform = 'rotate(-90deg)';
+            // Fix border radius when collapsing
+            compactHeader.style.borderRadius = '12px';
+            compactHeader.style.borderBottom = 'none';
+          });
+        } else {
+          // First remove pointer-events and set opacity to start expanding
+          compactCollapsibleContent.style.pointerEvents = 'auto';
+          compactCollapsibleContent.style.opacity = '1';
+
+          // Get the natural height by temporarily setting height to auto
+          const tempHeight = compactCollapsibleContent.style.height;
+          compactCollapsibleContent.style.height = 'auto';
+          const naturalHeight = compactCollapsibleContent.offsetHeight;
+          compactCollapsibleContent.style.height = tempHeight;
+
+          // Force reflow and animate to natural height
+          compactCollapsibleContent.offsetHeight;
+          compactCollapsibleContent.style.height = naturalHeight + 'px';
+          compactCollapseArrow.style.transform = 'rotate(0deg)';
+          // Restore border radius when expanding
+          compactHeader.style.borderRadius = '12px 12px 0 0';
+          compactHeader.style.borderBottom = '1px solid var(--bmcf-border)';
+
+          // After transition, set to auto for dynamic resizing
+          setTimeout(() => {
+            if (!isCollapsed) {
+              compactCollapsibleContent.style.height = 'auto';
+            }
+          }, 300);
+        }
+      });
+
+      // Add search bar section
+      const compactSearchContainer = document.createElement('div');
+      compactSearchContainer.style.cssText = `
       padding: 6px 12px;
       background: var(--slate-700);
       border-bottom: 1px solid var(--bmcf-border);
@@ -6185,11 +6185,11 @@ function buildColorFilterOverlay() {
       align-items: center;
       gap: 6px;
     `;
-    
-    const searchInput = document.createElement('input');
-    searchInput.type = 'text';
-    searchInput.placeholder = 'Search colors...';
-    searchInput.style.cssText = `
+
+      const searchInput = document.createElement('input');
+      searchInput.type = 'text';
+      searchInput.placeholder = 'Search colors...';
+      searchInput.style.cssText = `
       flex: 1;
       padding: 4px 8px;
       background: var(--slate-600);
@@ -6201,23 +6201,23 @@ function buildColorFilterOverlay() {
       outline: none;
       transition: all 0.2s ease;
     `;
-    
-    // Search input focus/blur effects
-    searchInput.addEventListener('focus', () => {
-      searchInput.style.borderColor = 'var(--blue-400)';
-      searchInput.style.background = 'var(--slate-550)';
-    });
-    
-    searchInput.addEventListener('blur', () => {
-      searchInput.style.borderColor = 'var(--slate-500)';
-      searchInput.style.background = 'var(--slate-600)';
-    });
-    
-    // Clear search button
-    const clearSearchBtn = document.createElement('button');
-    clearSearchBtn.innerHTML = '✕';
-    clearSearchBtn.title = 'Clear search';
-    clearSearchBtn.style.cssText = `
+
+      // Search input focus/blur effects
+      searchInput.addEventListener('focus', () => {
+        searchInput.style.borderColor = 'var(--blue-400)';
+        searchInput.style.background = 'var(--slate-550)';
+      });
+
+      searchInput.addEventListener('blur', () => {
+        searchInput.style.borderColor = 'var(--slate-500)';
+        searchInput.style.background = 'var(--slate-600)';
+      });
+
+      // Clear search button
+      const clearSearchBtn = document.createElement('button');
+      clearSearchBtn.innerHTML = '✕';
+      clearSearchBtn.title = 'Clear search';
+      clearSearchBtn.style.cssText = `
       background: none;
       border: none;
       color: var(--bmcf-text-muted);
@@ -6233,30 +6233,30 @@ function buildColorFilterOverlay() {
       transition: all 0.15s ease;
       opacity: 0.7;
     `;
-    
-    clearSearchBtn.addEventListener('mouseenter', () => {
-      clearSearchBtn.style.background = 'var(--slate-600)';
-      clearSearchBtn.style.opacity = '1';
-    });
-    
-    clearSearchBtn.addEventListener('mouseleave', () => {
-      clearSearchBtn.style.background = 'none';
-      clearSearchBtn.style.opacity = '0.7';
-    });
-    
-    clearSearchBtn.addEventListener('click', () => {
-      searchInput.value = '';
-      searchInput.dispatchEvent(new Event('input'));
-      searchInput.focus();
-    });
-    
-    compactSearchContainer.appendChild(searchInput);
-    compactSearchContainer.appendChild(clearSearchBtn);
-    compactCollapsibleContent.appendChild(compactSearchContainer);
 
-    // Add bulk action buttons above sort
-    const compactBulkContainer = document.createElement('div');
-    compactBulkContainer.style.cssText = `
+      clearSearchBtn.addEventListener('mouseenter', () => {
+        clearSearchBtn.style.background = 'var(--slate-600)';
+        clearSearchBtn.style.opacity = '1';
+      });
+
+      clearSearchBtn.addEventListener('mouseleave', () => {
+        clearSearchBtn.style.background = 'none';
+        clearSearchBtn.style.opacity = '0.7';
+      });
+
+      clearSearchBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        searchInput.dispatchEvent(new Event('input'));
+        searchInput.focus();
+      });
+
+      compactSearchContainer.appendChild(searchInput);
+      compactSearchContainer.appendChild(clearSearchBtn);
+      compactCollapsibleContent.appendChild(compactSearchContainer);
+
+      // Add bulk action buttons above sort
+      const compactBulkContainer = document.createElement('div');
+      compactBulkContainer.style.cssText = `
       padding: 3px 8px;
       background: var(--slate-700);
       border-bottom: 1px solid var(--bmcf-border);
@@ -6265,10 +6265,10 @@ function buildColorFilterOverlay() {
       justify-content: center;
       gap: 4px;
     `;
-    
-    const disableAllBtn = document.createElement('button');
-    disableAllBtn.textContent = 'Disable';
-    disableAllBtn.style.cssText = `
+
+      const disableAllBtn = document.createElement('button');
+      disableAllBtn.textContent = 'Disable';
+      disableAllBtn.style.cssText = `
       background: #dc2626;
       color: white;
       border: none;
@@ -6279,12 +6279,12 @@ function buildColorFilterOverlay() {
       transition: all 0.2s ease;
       font-weight: 500;
     `;
-    disableAllBtn.addEventListener('mouseenter', () => disableAllBtn.style.background = '#b91c1c');
-    disableAllBtn.addEventListener('mouseleave', () => disableAllBtn.style.background = '#dc2626');
-    
-    const enableAllBtn = document.createElement('button');
-    enableAllBtn.textContent = 'Enable';
-    enableAllBtn.style.cssText = `
+      disableAllBtn.addEventListener('mouseenter', () => disableAllBtn.style.background = '#b91c1c');
+      disableAllBtn.addEventListener('mouseleave', () => disableAllBtn.style.background = '#dc2626');
+
+      const enableAllBtn = document.createElement('button');
+      enableAllBtn.textContent = 'Enable';
+      enableAllBtn.style.cssText = `
       background: #16a34a;
       color: white;
       border: none;
@@ -6295,55 +6295,55 @@ function buildColorFilterOverlay() {
       transition: all 0.2s ease;
       font-weight: 500;
     `;
-    enableAllBtn.addEventListener('mouseenter', () => enableAllBtn.style.background = '#15803d');
-    enableAllBtn.addEventListener('mouseleave', () => enableAllBtn.style.background = '#16a34a');
-    
-    // Add click handlers usando a lógica que já existe
-    disableAllBtn.addEventListener('click', () => {
-      const currentTemplate = templateManager.templatesArray?.[0];
-      if (!currentTemplate) return;
-      
-      // Usar a mesma lógica que já existe no código para desabilitar cores
-      const items = compactContent.querySelectorAll('.bmcf-compact-item');
-      items.forEach(item => {
-        const colorRgb = item.getAttribute('data-color-rgb');
-        if (colorRgb) {
-          const [r, g, b] = colorRgb.split(',').map(Number);
-          if (!currentTemplate.isColorDisabled([r, g, b])) {
-            currentTemplate.disableColor([r, g, b]);
-            item.style.opacity = '0.5';
-            item.style.background = 'rgba(244, 67, 54, 0.1)';
-          }
-        }
-      });
-    });
-    
-    enableAllBtn.addEventListener('click', () => {
-      const currentTemplate = templateManager.templatesArray?.[0];
-      if (!currentTemplate) return;
-      
-      // Usar a mesma lógica que já existe no código para habilitar cores
-      const items = compactContent.querySelectorAll('.bmcf-compact-item');
-      items.forEach(item => {
-        const colorRgb = item.getAttribute('data-color-rgb');
-        if (colorRgb) {
-          const [r, g, b] = colorRgb.split(',').map(Number);
-          if (currentTemplate.isColorDisabled([r, g, b])) {
-            currentTemplate.enableColor([r, g, b]);
-            item.style.opacity = '1';
-            item.style.background = '';
-          }
-        }
-      });
-    });
-    
-    compactBulkContainer.appendChild(disableAllBtn);
-    compactBulkContainer.appendChild(enableAllBtn);
-    compactCollapsibleContent.appendChild(compactBulkContainer);
+      enableAllBtn.addEventListener('mouseenter', () => enableAllBtn.style.background = '#15803d');
+      enableAllBtn.addEventListener('mouseleave', () => enableAllBtn.style.background = '#16a34a');
 
-    // Add sort filter section
-    const compactSortContainer = document.createElement('div');
-    compactSortContainer.style.cssText = `
+      // Add click handlers usando a lógica que já existe
+      disableAllBtn.addEventListener('click', () => {
+        const currentTemplate = templateManager.templatesArray?.[0];
+        if (!currentTemplate) return;
+
+        // Usar a mesma lógica que já existe no código para desabilitar cores
+        const items = compactContent.querySelectorAll('.bmcf-compact-item');
+        items.forEach(item => {
+          const colorRgb = item.getAttribute('data-color-rgb');
+          if (colorRgb) {
+            const [r, g, b] = colorRgb.split(',').map(Number);
+            if (!currentTemplate.isColorDisabled([r, g, b])) {
+              currentTemplate.disableColor([r, g, b]);
+              item.style.opacity = '0.5';
+              item.style.background = 'rgba(244, 67, 54, 0.1)';
+            }
+          }
+        });
+      });
+
+      enableAllBtn.addEventListener('click', () => {
+        const currentTemplate = templateManager.templatesArray?.[0];
+        if (!currentTemplate) return;
+
+        // Usar a mesma lógica que já existe no código para habilitar cores
+        const items = compactContent.querySelectorAll('.bmcf-compact-item');
+        items.forEach(item => {
+          const colorRgb = item.getAttribute('data-color-rgb');
+          if (colorRgb) {
+            const [r, g, b] = colorRgb.split(',').map(Number);
+            if (currentTemplate.isColorDisabled([r, g, b])) {
+              currentTemplate.enableColor([r, g, b]);
+              item.style.opacity = '1';
+              item.style.background = '';
+            }
+          }
+        });
+      });
+
+      compactBulkContainer.appendChild(disableAllBtn);
+      compactBulkContainer.appendChild(enableAllBtn);
+      compactCollapsibleContent.appendChild(compactBulkContainer);
+
+      // Add sort filter section
+      const compactSortContainer = document.createElement('div');
+      compactSortContainer.style.cssText = `
       padding: 8px 12px;
       background: var(--slate-700);
       border-bottom: 1px solid var(--bmcf-border);
@@ -6351,17 +6351,17 @@ function buildColorFilterOverlay() {
       align-items: center;
       gap: 8px;
     `;
-    
-    const sortLabel = document.createElement('span');
-    sortLabel.textContent = 'Sort:';
-    sortLabel.style.cssText = `
+
+      const sortLabel = document.createElement('span');
+      sortLabel.textContent = 'Sort:';
+      sortLabel.style.cssText = `
       font-size: 11px;
       color: var(--bmcf-text-muted);
       min-width: 30px;
     `;
-    
-    const compactSortSelect = document.createElement('select');
-    compactSortSelect.style.cssText = `
+
+      const compactSortSelect = document.createElement('select');
+      compactSortSelect.style.cssText = `
       flex: 1;
       padding: 4px 8px;
       border: 1px solid rgba(255, 255, 255, 0.2);
@@ -6372,374 +6372,374 @@ function buildColorFilterOverlay() {
       outline: none;
       cursor: pointer;
     `;
-    
-    // Sort options
-    const sortOptions = [
-      { value: 'default', text: 'Default Order' },
-      { value: 'name', text: 'By Name' },
-      { value: 'premium', text: 'Premium (Most Missing)' },
-      { value: 'most-missing', text: 'Most Pixels Missing' },
-      { value: 'less-missing', text: 'Less Pixels Missing' },
-      { value: 'remaining', text: 'By Remaining' },
-      { value: 'progress', text: 'By Progress' },
-      { value: 'most-painted', text: 'Most Painted' },
-      { value: 'less-painted', text: 'Less Painted' },
-      { value: 'enhanced', text: 'Enhanced Only' }
-    ];
-    
-    sortOptions.forEach(option => {
-      const optionElement = document.createElement('option');
-      optionElement.value = option.value;
-      optionElement.textContent = option.text;
-      optionElement.style.cssText = `
+
+      // Sort options
+      const sortOptions = [
+        { value: 'default', text: 'Default Order' },
+        { value: 'name', text: 'By Name' },
+        { value: 'premium', text: 'Premium (Most Missing)' },
+        { value: 'most-missing', text: 'Most Pixels Missing' },
+        { value: 'less-missing', text: 'Less Pixels Missing' },
+        { value: 'remaining', text: 'By Remaining' },
+        { value: 'progress', text: 'By Progress' },
+        { value: 'most-painted', text: 'Most Painted' },
+        { value: 'less-painted', text: 'Less Painted' },
+        { value: 'enhanced', text: 'Enhanced Only' }
+      ];
+
+      sortOptions.forEach(option => {
+        const optionElement = document.createElement('option');
+        optionElement.value = option.value;
+        optionElement.textContent = option.text;
+        optionElement.style.cssText = `
         background: #2a2a2a;
         color: white;
       `;
-      compactSortSelect.appendChild(optionElement);
-    });
-    
-    compactSortContainer.appendChild(sortLabel);
-    compactSortContainer.appendChild(compactSortSelect);
-    compactCollapsibleContent.appendChild(compactSortContainer);
+        compactSortSelect.appendChild(optionElement);
+      });
 
-    // Create scrollable content container
-    const compactContent = document.createElement('div');
-    compactContent.style.cssText = `
+      compactSortContainer.appendChild(sortLabel);
+      compactSortContainer.appendChild(compactSortSelect);
+      compactCollapsibleContent.appendChild(compactSortContainer);
+
+      // Create scrollable content container
+      const compactContent = document.createElement('div');
+      compactContent.style.cssText = `
       overflow-y: auto;
       max-height: 300px;
       min-height: 0;
     `;
-    compactCollapsibleContent.appendChild(compactContent);
+      compactCollapsibleContent.appendChild(compactContent);
 
-    // Add drag functionality to compact list
-    let isDraggingCompact = false;
-    let compactDragStartX = 0;
-    let compactDragStartY = 0;
-    let compactInitialLeft = 0;
-    let compactInitialTop = 0;
+      // Add drag functionality to compact list
+      let isDraggingCompact = false;
+      let compactDragStartX = 0;
+      let compactDragStartY = 0;
+      let compactInitialLeft = 0;
+      let compactInitialTop = 0;
 
-    compactHeader.style.cursor = 'move';
-    compactHeader.addEventListener('mousedown', (e) => {
-      // Don't start dragging if clicking on close button or collapse arrow
-      if (e.target === compactCloseBtn || e.target === compactCollapseArrow) return;
-      
-      isDraggingCompact = true;
-      compactDragStartX = e.clientX;
-      compactDragStartY = e.clientY;
-      
-      // Get current position
-      const rect = compactList.getBoundingClientRect();
-      compactInitialLeft = rect.left;
-      compactInitialTop = rect.top;
-      
-      // Change cursor and prevent text selection
-      compactHeader.style.cursor = 'grabbing';
-      compactList.style.userSelect = 'none';
-      document.body.style.userSelect = 'none';
-      
-      e.preventDefault();
-    });
-
-    // Mouse move handler for dragging
-    document.addEventListener('mousemove', (e) => {
-      if (!isDraggingCompact) return;
-      
-      const deltaX = e.clientX - compactDragStartX;
-      const deltaY = e.clientY - compactDragStartY;
-      
-      const newLeft = compactInitialLeft + deltaX;
-      const newTop = compactInitialTop + deltaY;
-      
-      // Keep within viewport bounds
-      const maxLeft = window.innerWidth - compactList.offsetWidth;
-      const maxTop = window.innerHeight - compactList.offsetHeight;
-      
-      compactList.style.left = Math.max(0, Math.min(maxLeft, newLeft)) + 'px';
-      compactList.style.top = Math.max(0, Math.min(maxTop, newTop)) + 'px';
-      compactList.style.right = 'auto'; // Remove right positioning
-    });
-
-    // Mouse up handler to stop dragging
-    document.addEventListener('mouseup', () => {
-      if (!isDraggingCompact) return;
-      
-      isDraggingCompact = false;
       compactHeader.style.cursor = 'move';
-      compactList.style.userSelect = '';
-      document.body.style.userSelect = '';
-    });
+      compactHeader.addEventListener('mousedown', (e) => {
+        // Don't start dragging if clicking on close button or collapse arrow
+        if (e.target === compactCloseBtn || e.target === compactCollapseArrow) return;
 
-    // Touch support for mobile
-    compactHeader.addEventListener('touchstart', (e) => {
-      if (e.target === compactCloseBtn) return;
-      
-      const touch = e.touches[0];
-      isDraggingCompact = true;
-      compactDragStartX = touch.clientX;
-      compactDragStartY = touch.clientY;
-      
-      const rect = compactList.getBoundingClientRect();
-      compactInitialLeft = rect.left;
-      compactInitialTop = rect.top;
-      
-      compactList.style.userSelect = 'none';
-      e.preventDefault();
-    }, { passive: false });
+        isDraggingCompact = true;
+        compactDragStartX = e.clientX;
+        compactDragStartY = e.clientY;
 
-    document.addEventListener('touchmove', (e) => {
-      if (!isDraggingCompact) return;
-      
-      const touch = e.touches[0];
-      const deltaX = touch.clientX - compactDragStartX;
-      const deltaY = touch.clientY - compactDragStartY;
-      
-      const newLeft = compactInitialLeft + deltaX;
-      const newTop = compactInitialTop + deltaY;
-      
-      const maxLeft = window.innerWidth - compactList.offsetWidth;
-      const maxTop = window.innerHeight - compactList.offsetHeight;
-      
-      compactList.style.left = Math.max(0, Math.min(maxLeft, newLeft)) + 'px';
-      compactList.style.top = Math.max(0, Math.min(maxTop, newTop)) + 'px';
-      compactList.style.right = 'auto';
-    }, { passive: false });
+        // Get current position
+        const rect = compactList.getBoundingClientRect();
+        compactInitialLeft = rect.left;
+        compactInitialTop = rect.top;
 
-    document.addEventListener('touchend', () => {
-      if (!isDraggingCompact) return;
-      
-      isDraggingCompact = false;
-      compactList.style.userSelect = '';
-    });
+        // Change cursor and prevent text selection
+        compactHeader.style.cursor = 'grabbing';
+        compactList.style.userSelect = 'none';
+        document.body.style.userSelect = 'none';
 
-    // Function to apply sort to compact list
-    const applyCompactSort = (sortType) => {
-      const sortedItems = [...allCompactItems];
-      
-      switch (sortType) {
-        case 'name':
-          // Show all items first
-          sortedItems.forEach(item => {
-            item.style.display = 'flex';
-          });
-          sortedItems.sort((a, b) => {
-            const nameA = a.querySelector('.bmcf-compact-name div').textContent.toLowerCase();
-            const nameB = b.querySelector('.bmcf-compact-name div').textContent.toLowerCase();
-            return nameA.localeCompare(nameB);
-          });
-          break;
-          
-        case 'premium':
-          // Show all items first
-          sortedItems.forEach(item => {
-            item.style.display = 'flex';
-          });
-          sortedItems.sort((a, b) => {
-            const colorKeyA = a.getAttribute('data-color-rgb');
-            const colorKeyB = b.getAttribute('data-color-rgb');
-            
-            // Find colors in utils.colorpalette
-            const colorA = utils.colorpalette.find(c => c.name !== 'Transparent' && `${c.rgb[0]},${c.rgb[1]},${c.rgb[2]}` === colorKeyA);
-            const colorB = utils.colorpalette.find(c => c.name !== 'Transparent' && `${c.rgb[0]},${c.rgb[1]},${c.rgb[2]}` === colorKeyB);
-            
-            const isPremiumA = colorA && colorA.free === false;
-            const isPremiumB = colorB && colorB.free === false;
-            
-            // Premium colors first
-            if (isPremiumA && !isPremiumB) return -1;
-            if (!isPremiumA && isPremiumB) return 1;
-            
-            // If both are premium or both are free, sort by most pixels missing
-            const remainingA = parseInt(a.getAttribute('data-remaining') || '0');
-            const remainingB = parseInt(b.getAttribute('data-remaining') || '0');
-            const totalA = parseInt(a.getAttribute('data-total') || '0');
-            const totalB = parseInt(b.getAttribute('data-total') || '0');
-            
-            // Filter out 0/0 colors (no pixels at all)
-            if (totalA === 0 && totalB > 0) return 1;
-            if (totalB === 0 && totalA > 0) return -1;
-            if (totalA === 0 && totalB === 0) return 0;
-            
-            return remainingB - remainingA; // Descending (more missing first)
-          });
-          break;
-          
-        case 'most-missing':
-          // Show all items first
-          sortedItems.forEach(item => {
-            item.style.display = 'flex';
-          });
-          sortedItems.sort((a, b) => {
-            const remainingA = parseInt(a.getAttribute('data-remaining') || '0');
-            const remainingB = parseInt(b.getAttribute('data-remaining') || '0');
-            const totalA = parseInt(a.getAttribute('data-total') || '0');
-            const totalB = parseInt(b.getAttribute('data-total') || '0');
-            
-            // Filter out 0/0 colors (no pixels at all)
-            if (totalA === 0 && totalB > 0) return 1;
-            if (totalB === 0 && totalA > 0) return -1;
-            if (totalA === 0 && totalB === 0) return 0;
-            
-            return remainingB - remainingA; // Descending (more missing first)
-          });
-          break;
-          
-        case 'less-missing':
-          // Show all items first
-          sortedItems.forEach(item => {
-            item.style.display = 'flex';
-          });
-          sortedItems.sort((a, b) => {
-            const remainingA = parseInt(a.getAttribute('data-remaining') || '0');
-            const remainingB = parseInt(b.getAttribute('data-remaining') || '0');
-            const totalA = parseInt(a.getAttribute('data-total') || '0');
-            const totalB = parseInt(b.getAttribute('data-total') || '0');
-            
-            // Filter out 0/0 colors (no pixels at all) - put them at the end
-            if (totalA === 0 && totalB > 0) return 1;
-            if (totalB === 0 && totalA > 0) return -1;
-            if (totalA === 0 && totalB === 0) return 0;
-            
-            return remainingA - remainingB; // Ascending (less missing first)
-          });
-          break;
-          
-        case 'remaining':
-          // Show all items first
-          sortedItems.forEach(item => {
-            item.style.display = 'flex';
-          });
-          sortedItems.sort((a, b) => {
-            const remainingA = parseInt(a.getAttribute('data-remaining') || '0');
-            const remainingB = parseInt(b.getAttribute('data-remaining') || '0');
-            return remainingB - remainingA; // Descending (more remaining first)
-          });
-          break;
-          
-        case 'progress':
-          // Show all items first
-          sortedItems.forEach(item => {
-            item.style.display = 'flex';
-          });
-          sortedItems.sort((a, b) => {
-            const progressA = parseFloat(a.getAttribute('data-progress') || '0');
-            const progressB = parseFloat(b.getAttribute('data-progress') || '0');
-            return progressB - progressA; // Descending (higher progress first)
-          });
-          break;
-          
-        case 'most-painted':
-          // Show all items first
-          sortedItems.forEach(item => {
-            item.style.display = 'flex';
-          });
-          sortedItems.sort((a, b) => {
-            const paintedA = parseInt(a.getAttribute('data-painted') || '0');
-            const paintedB = parseInt(b.getAttribute('data-painted') || '0');
-            return paintedB - paintedA; // Descending (more painted first)
-          });
-          break;
-          
-        case 'less-painted':
-          // Show all items first
-          sortedItems.forEach(item => {
-            item.style.display = 'flex';
-          });
-          sortedItems.sort((a, b) => {
-            const paintedA = parseInt(a.getAttribute('data-painted') || '0');
-            const paintedB = parseInt(b.getAttribute('data-painted') || '0');
-            const totalA = parseInt(a.getAttribute('data-total') || '0');
-            const totalB = parseInt(b.getAttribute('data-total') || '0');
-            
-            // Filter out 0/0 colors (no pixels at all) - put them at the end
-            if (totalA === 0 && totalB > 0) return 1;
-            if (totalB === 0 && totalA > 0) return -1;
-            if (totalA === 0 && totalB === 0) return 0;
-            
-            return paintedA - paintedB; // Ascending (less painted first)
-          });
-          break;
-          
-        case 'enhanced':
-          // First show all items, then sort enhanced ones to top
-          sortedItems.forEach(item => {
-            item.style.display = 'flex';
-          });
-          sortedItems.sort((a, b) => {
-            const enhancedA = a.querySelector('input[type="checkbox"]').checked;
-            const enhancedB = b.querySelector('input[type="checkbox"]').checked;
-            if (enhancedA && !enhancedB) return -1;
-            if (!enhancedA && enhancedB) return 1;
-            return 0;
-          });
-          // Filter to show only enhanced colors
-          sortedItems.forEach(item => {
-            const isEnhanced = item.querySelector('input[type="checkbox"]').checked;
-            item.style.display = isEnhanced ? 'flex' : 'none';
-          });
-          break;
-          
-        case 'default':
-        default:
-          // Show all items and use original order
-          sortedItems.forEach(item => {
-            item.style.display = 'flex';
-          });
-          // Sort by original index
-          sortedItems.sort((a, b) => {
-            const indexA = parseInt(a.getAttribute('data-original-index') || '0');
-            const indexB = parseInt(b.getAttribute('data-original-index') || '0');
-            return indexA - indexB;
-          });
-          break;
-      }
-      
-      // Clear and re-append all sorted items
-      compactContent.innerHTML = '';
-      sortedItems.forEach(item => {
-        compactContent.appendChild(item);
+        e.preventDefault();
       });
-    };
-    
-    // Add sort event listener
-    compactSortSelect.addEventListener('change', () => {
-      applyCompactSort(compactSortSelect.value);
-      // Save sort preference
-      localStorage.setItem('bmcf-compact-sort', compactSortSelect.value);
-    });
-    
-    // Load saved sort preference
-    const savedSort = localStorage.getItem('bmcf-compact-sort') || 'default';
-    compactSortSelect.value = savedSort;
 
-    // Store reference to all original items for sorting
-    let allCompactItems = [];
+      // Mouse move handler for dragging
+      document.addEventListener('mousemove', (e) => {
+        if (!isDraggingCompact) return;
 
-    // Build compact list items
-    utils.colorpalette.forEach((color, index) => {
-      const colorKey = `${color.rgb[0]},${color.rgb[1]},${color.rgb[2]}`;
-      if (index === 0) return; // Skip transparent
+        const deltaX = e.clientX - compactDragStartX;
+        const deltaY = e.clientY - compactDragStartY;
 
-      const stats = pixelStats[colorKey] || {};
+        const newLeft = compactInitialLeft + deltaX;
+        const newTop = compactInitialTop + deltaY;
 
-      // Check if color is currently disabled in template
-      const templateInstance = templateManager.templatesArray?.[0];
-      const isDisabled = templateInstance ? templateInstance.isColorDisabled(color.rgb) : false;
+        // Keep within viewport bounds
+        const maxLeft = window.innerWidth - compactList.offsetWidth;
+        const maxTop = window.innerHeight - compactList.offsetHeight;
 
-      // Get progress data first
-      const painted = stats.painted || 0;
-      const remaining = stats.needsCrosshair || 0;
-      const totalPixels = painted + remaining; // Real total = painted + remaining
-      const progressPercent = totalPixels > 0 ? Math.round((painted / totalPixels) * 100) : 0;
+        compactList.style.left = Math.max(0, Math.min(maxLeft, newLeft)) + 'px';
+        compactList.style.top = Math.max(0, Math.min(maxTop, newTop)) + 'px';
+        compactList.style.right = 'auto'; // Remove right positioning
+      });
 
-      const item = document.createElement('div');
-      item.className = 'bmcf-compact-item';
-      item.setAttribute('data-color-rgb', colorKey);
-      item.setAttribute('data-original-index', index.toString());
-      item.setAttribute('data-remaining', remaining.toString());
-      item.setAttribute('data-painted', painted.toString());
-      item.setAttribute('data-total', totalPixels.toString());
-      item.setAttribute('data-progress', progressPercent.toString());
-      item.style.cssText = `
+      // Mouse up handler to stop dragging
+      document.addEventListener('mouseup', () => {
+        if (!isDraggingCompact) return;
+
+        isDraggingCompact = false;
+        compactHeader.style.cursor = 'move';
+        compactList.style.userSelect = '';
+        document.body.style.userSelect = '';
+      });
+
+      // Touch support for mobile
+      compactHeader.addEventListener('touchstart', (e) => {
+        if (e.target === compactCloseBtn) return;
+
+        const touch = e.touches[0];
+        isDraggingCompact = true;
+        compactDragStartX = touch.clientX;
+        compactDragStartY = touch.clientY;
+
+        const rect = compactList.getBoundingClientRect();
+        compactInitialLeft = rect.left;
+        compactInitialTop = rect.top;
+
+        compactList.style.userSelect = 'none';
+        e.preventDefault();
+      }, { passive: false });
+
+      document.addEventListener('touchmove', (e) => {
+        if (!isDraggingCompact) return;
+
+        const touch = e.touches[0];
+        const deltaX = touch.clientX - compactDragStartX;
+        const deltaY = touch.clientY - compactDragStartY;
+
+        const newLeft = compactInitialLeft + deltaX;
+        const newTop = compactInitialTop + deltaY;
+
+        const maxLeft = window.innerWidth - compactList.offsetWidth;
+        const maxTop = window.innerHeight - compactList.offsetHeight;
+
+        compactList.style.left = Math.max(0, Math.min(maxLeft, newLeft)) + 'px';
+        compactList.style.top = Math.max(0, Math.min(maxTop, newTop)) + 'px';
+        compactList.style.right = 'auto';
+      }, { passive: false });
+
+      document.addEventListener('touchend', () => {
+        if (!isDraggingCompact) return;
+
+        isDraggingCompact = false;
+        compactList.style.userSelect = '';
+      });
+
+      // Function to apply sort to compact list
+      const applyCompactSort = (sortType) => {
+        const sortedItems = [...allCompactItems];
+
+        switch (sortType) {
+          case 'name':
+            // Show all items first
+            sortedItems.forEach(item => {
+              item.style.display = 'flex';
+            });
+            sortedItems.sort((a, b) => {
+              const nameA = a.querySelector('.bmcf-compact-name div').textContent.toLowerCase();
+              const nameB = b.querySelector('.bmcf-compact-name div').textContent.toLowerCase();
+              return nameA.localeCompare(nameB);
+            });
+            break;
+
+          case 'premium':
+            // Show all items first
+            sortedItems.forEach(item => {
+              item.style.display = 'flex';
+            });
+            sortedItems.sort((a, b) => {
+              const colorKeyA = a.getAttribute('data-color-rgb');
+              const colorKeyB = b.getAttribute('data-color-rgb');
+
+              // Find colors in utils.colorpalette
+              const colorA = utils.colorpalette.find(c => c.name !== 'Transparent' && `${c.rgb[0]},${c.rgb[1]},${c.rgb[2]}` === colorKeyA);
+              const colorB = utils.colorpalette.find(c => c.name !== 'Transparent' && `${c.rgb[0]},${c.rgb[1]},${c.rgb[2]}` === colorKeyB);
+
+              const isPremiumA = colorA && colorA.free === false;
+              const isPremiumB = colorB && colorB.free === false;
+
+              // Premium colors first
+              if (isPremiumA && !isPremiumB) return -1;
+              if (!isPremiumA && isPremiumB) return 1;
+
+              // If both are premium or both are free, sort by most pixels missing
+              const remainingA = parseInt(a.getAttribute('data-remaining') || '0');
+              const remainingB = parseInt(b.getAttribute('data-remaining') || '0');
+              const totalA = parseInt(a.getAttribute('data-total') || '0');
+              const totalB = parseInt(b.getAttribute('data-total') || '0');
+
+              // Filter out 0/0 colors (no pixels at all)
+              if (totalA === 0 && totalB > 0) return 1;
+              if (totalB === 0 && totalA > 0) return -1;
+              if (totalA === 0 && totalB === 0) return 0;
+
+              return remainingB - remainingA; // Descending (more missing first)
+            });
+            break;
+
+          case 'most-missing':
+            // Show all items first
+            sortedItems.forEach(item => {
+              item.style.display = 'flex';
+            });
+            sortedItems.sort((a, b) => {
+              const remainingA = parseInt(a.getAttribute('data-remaining') || '0');
+              const remainingB = parseInt(b.getAttribute('data-remaining') || '0');
+              const totalA = parseInt(a.getAttribute('data-total') || '0');
+              const totalB = parseInt(b.getAttribute('data-total') || '0');
+
+              // Filter out 0/0 colors (no pixels at all)
+              if (totalA === 0 && totalB > 0) return 1;
+              if (totalB === 0 && totalA > 0) return -1;
+              if (totalA === 0 && totalB === 0) return 0;
+
+              return remainingB - remainingA; // Descending (more missing first)
+            });
+            break;
+
+          case 'less-missing':
+            // Show all items first
+            sortedItems.forEach(item => {
+              item.style.display = 'flex';
+            });
+            sortedItems.sort((a, b) => {
+              const remainingA = parseInt(a.getAttribute('data-remaining') || '0');
+              const remainingB = parseInt(b.getAttribute('data-remaining') || '0');
+              const totalA = parseInt(a.getAttribute('data-total') || '0');
+              const totalB = parseInt(b.getAttribute('data-total') || '0');
+
+              // Filter out 0/0 colors (no pixels at all) - put them at the end
+              if (totalA === 0 && totalB > 0) return 1;
+              if (totalB === 0 && totalA > 0) return -1;
+              if (totalA === 0 && totalB === 0) return 0;
+
+              return remainingA - remainingB; // Ascending (less missing first)
+            });
+            break;
+
+          case 'remaining':
+            // Show all items first
+            sortedItems.forEach(item => {
+              item.style.display = 'flex';
+            });
+            sortedItems.sort((a, b) => {
+              const remainingA = parseInt(a.getAttribute('data-remaining') || '0');
+              const remainingB = parseInt(b.getAttribute('data-remaining') || '0');
+              return remainingB - remainingA; // Descending (more remaining first)
+            });
+            break;
+
+          case 'progress':
+            // Show all items first
+            sortedItems.forEach(item => {
+              item.style.display = 'flex';
+            });
+            sortedItems.sort((a, b) => {
+              const progressA = parseFloat(a.getAttribute('data-progress') || '0');
+              const progressB = parseFloat(b.getAttribute('data-progress') || '0');
+              return progressB - progressA; // Descending (higher progress first)
+            });
+            break;
+
+          case 'most-painted':
+            // Show all items first
+            sortedItems.forEach(item => {
+              item.style.display = 'flex';
+            });
+            sortedItems.sort((a, b) => {
+              const paintedA = parseInt(a.getAttribute('data-painted') || '0');
+              const paintedB = parseInt(b.getAttribute('data-painted') || '0');
+              return paintedB - paintedA; // Descending (more painted first)
+            });
+            break;
+
+          case 'less-painted':
+            // Show all items first
+            sortedItems.forEach(item => {
+              item.style.display = 'flex';
+            });
+            sortedItems.sort((a, b) => {
+              const paintedA = parseInt(a.getAttribute('data-painted') || '0');
+              const paintedB = parseInt(b.getAttribute('data-painted') || '0');
+              const totalA = parseInt(a.getAttribute('data-total') || '0');
+              const totalB = parseInt(b.getAttribute('data-total') || '0');
+
+              // Filter out 0/0 colors (no pixels at all) - put them at the end
+              if (totalA === 0 && totalB > 0) return 1;
+              if (totalB === 0 && totalA > 0) return -1;
+              if (totalA === 0 && totalB === 0) return 0;
+
+              return paintedA - paintedB; // Ascending (less painted first)
+            });
+            break;
+
+          case 'enhanced':
+            // First show all items, then sort enhanced ones to top
+            sortedItems.forEach(item => {
+              item.style.display = 'flex';
+            });
+            sortedItems.sort((a, b) => {
+              const enhancedA = a.querySelector('input[type="checkbox"]').checked;
+              const enhancedB = b.querySelector('input[type="checkbox"]').checked;
+              if (enhancedA && !enhancedB) return -1;
+              if (!enhancedA && enhancedB) return 1;
+              return 0;
+            });
+            // Filter to show only enhanced colors
+            sortedItems.forEach(item => {
+              const isEnhanced = item.querySelector('input[type="checkbox"]').checked;
+              item.style.display = isEnhanced ? 'flex' : 'none';
+            });
+            break;
+
+          case 'default':
+          default:
+            // Show all items and use original order
+            sortedItems.forEach(item => {
+              item.style.display = 'flex';
+            });
+            // Sort by original index
+            sortedItems.sort((a, b) => {
+              const indexA = parseInt(a.getAttribute('data-original-index') || '0');
+              const indexB = parseInt(b.getAttribute('data-original-index') || '0');
+              return indexA - indexB;
+            });
+            break;
+        }
+
+        // Clear and re-append all sorted items
+        compactContent.innerHTML = '';
+        sortedItems.forEach(item => {
+          compactContent.appendChild(item);
+        });
+      };
+
+      // Add sort event listener
+      compactSortSelect.addEventListener('change', () => {
+        applyCompactSort(compactSortSelect.value);
+        // Save sort preference
+        localStorage.setItem('bmcf-compact-sort', compactSortSelect.value);
+      });
+
+      // Load saved sort preference
+      const savedSort = localStorage.getItem('bmcf-compact-sort') || 'default';
+      compactSortSelect.value = savedSort;
+
+      // Store reference to all original items for sorting
+      let allCompactItems = [];
+
+      // Build compact list items
+      utils.colorpalette.forEach((color, index) => {
+        const colorKey = `${color.rgb[0]},${color.rgb[1]},${color.rgb[2]}`;
+        if (index === 0) return; // Skip transparent
+
+        const stats = pixelStats[colorKey] || {};
+
+        // Check if color is currently disabled in template
+        const templateInstance = templateManager.templatesArray?.[0];
+        const isDisabled = templateInstance ? templateInstance.isColorDisabled(color.rgb) : false;
+
+        // Get progress data first
+        const painted = stats.painted || 0;
+        const remaining = stats.needsCrosshair || 0;
+        const totalPixels = painted + remaining; // Real total = painted + remaining
+        const progressPercent = totalPixels > 0 ? Math.round((painted / totalPixels) * 100) : 0;
+
+        const item = document.createElement('div');
+        item.className = 'bmcf-compact-item';
+        item.setAttribute('data-color-rgb', colorKey);
+        item.setAttribute('data-original-index', index.toString());
+        item.setAttribute('data-remaining', remaining.toString());
+        item.setAttribute('data-painted', painted.toString());
+        item.setAttribute('data-total', totalPixels.toString());
+        item.setAttribute('data-progress', progressPercent.toString());
+        item.style.cssText = `
         display: flex;
         align-items: center;
         gap: 6px;
@@ -6750,12 +6750,12 @@ function buildColorFilterOverlay() {
         min-height: 32px;
         ${isDisabled ? 'opacity: 0.5; background: rgba(244, 67, 54, 0.1);' : ''}
       `;
-      item.onmouseover = () => item.style.backgroundColor = 'var(--slate-700)';
-      item.onmouseout = () => item.style.backgroundColor = '';
+        item.onmouseover = () => item.style.backgroundColor = 'var(--slate-700)';
+        item.onmouseout = () => item.style.backgroundColor = '';
 
-      // Color swatch
-      const swatch = document.createElement('div');
-      swatch.style.cssText = `
+        // Color swatch
+        const swatch = document.createElement('div');
+        swatch.style.cssText = `
         width: 14px;
         height: 14px;
         border-radius: 2px;
@@ -6764,94 +6764,94 @@ function buildColorFilterOverlay() {
         flex-shrink: 0;
       `;
 
-      // Color name with progress
-      const name = document.createElement('div');
-      name.className = 'bmcf-compact-name';
-      name.style.cssText = `
+        // Color name with progress
+        const name = document.createElement('div');
+        name.className = 'bmcf-compact-name';
+        name.style.cssText = `
         font-size: 10px;
         color: var(--bmcf-text);
         flex: 1;
         min-width: 0;
         overflow: hidden;
       `;
-      
-      name.innerHTML = `
+
+        name.innerHTML = `
         <div style="font-weight: 600; margin-bottom: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${color.name}</div>
         <div style="font-size: 8px; color: var(--bmcf-text-muted); opacity: 0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
           ${painted.toLocaleString()}/${totalPixels.toLocaleString()} (${progressPercent}%) | ${remaining.toLocaleString()} left
         </div>
       `;
 
-      // Remove separate count display since it's now in the progress line
+        // Remove separate count display since it's now in the progress line
 
-      // Controls container
-      const controlsContainer = document.createElement('div');
-      controlsContainer.style.cssText = `
+        // Controls container
+        const controlsContainer = document.createElement('div');
+        controlsContainer.style.cssText = `
         display: flex;
         align-items: center;
         gap: 4px;
         flex-shrink: 0;
       `;
 
-      // Enhanced mode checkbox
-      const enhancedCheckbox = document.createElement('input');
-      enhancedCheckbox.type = 'checkbox';
-      enhancedCheckbox.style.cssText = `
+        // Enhanced mode checkbox
+        const enhancedCheckbox = document.createElement('input');
+        enhancedCheckbox.type = 'checkbox';
+        enhancedCheckbox.style.cssText = `
         width: 12px;
         height: 12px;
         cursor: pointer;
       `;
-      enhancedCheckbox.title = 'Enable enhanced mode for this color';
-      
-      // Check if color is currently enhanced
-      if (templateInstance && templateInstance.enhancedColors) {
-        const rgbKey = color.rgb.join(',');
-        enhancedCheckbox.checked = templateInstance.enhancedColors.has(rgbKey);
-      }
-      
-      enhancedCheckbox.onclick = (e) => {
-        e.stopPropagation();
-      };
-      
-      enhancedCheckbox.onchange = (e) => {
-        e.stopPropagation();
-        const currentTemplate = templateManager.templatesArray?.[0];
-        if (!currentTemplate) return;
-        
-        if (enhancedCheckbox.checked) {
-          currentTemplate.enableColorEnhanced(color.rgb);
-          overlayMain.handleDisplayStatus(`Enhanced mode enabled: ${color.name}`);
-        } else {
-          currentTemplate.disableColorEnhanced(color.rgb);
-          overlayMain.handleDisplayStatus(`Enhanced mode disabled: ${color.name}`);
-        }
-        
-        // Sync with main overlay checkboxes
-        const gridItem = colorViewContainer.querySelector(`[data-color-rgb="${colorKey}"]`);
-        const listItem = colorViewContainer.querySelector(`[data-color-rgb="${colorKey}"].bmcf-list-item`);
-        
-        if (gridItem) {
-          const gridCheckbox = gridItem.querySelector('input[type="checkbox"]');
-          if (gridCheckbox) gridCheckbox.checked = enhancedCheckbox.checked;
-        }
-        
-        if (listItem) {
-          const listCheckbox = listItem.querySelector('input[type="checkbox"]');
-          if (listCheckbox) listCheckbox.checked = enhancedCheckbox.checked;
-        }
-        
-        // Refresh template display to save changes persistently
-        refreshTemplateDisplay().catch(error => {
-          consoleError('Error refreshing enhanced mode from Color Toggle:', error);
-        });
-      };
+        enhancedCheckbox.title = 'Enable enhanced mode for this color';
 
-      // Premium indicator (droplet for premium colors only)
-      const premiumIcon = document.createElement('div');
-      if (!color.free) {
-        premiumIcon.textContent = "💧";
-        premiumIcon.title = "Premium color";
-        premiumIcon.style.cssText = `
+        // Check if color is currently enhanced
+        if (templateInstance && templateInstance.enhancedColors) {
+          const rgbKey = color.rgb.join(',');
+          enhancedCheckbox.checked = templateInstance.enhancedColors.has(rgbKey);
+        }
+
+        enhancedCheckbox.onclick = (e) => {
+          e.stopPropagation();
+        };
+
+        enhancedCheckbox.onchange = (e) => {
+          e.stopPropagation();
+          const currentTemplate = templateManager.templatesArray?.[0];
+          if (!currentTemplate) return;
+
+          if (enhancedCheckbox.checked) {
+            currentTemplate.enableColorEnhanced(color.rgb);
+            overlayMain.handleDisplayStatus(`Enhanced mode enabled: ${color.name}`);
+          } else {
+            currentTemplate.disableColorEnhanced(color.rgb);
+            overlayMain.handleDisplayStatus(`Enhanced mode disabled: ${color.name}`);
+          }
+
+          // Sync with main overlay checkboxes
+          const gridItem = colorViewContainer.querySelector(`[data-color-rgb="${colorKey}"]`);
+          const listItem = colorViewContainer.querySelector(`[data-color-rgb="${colorKey}"].bmcf-list-item`);
+
+          if (gridItem) {
+            const gridCheckbox = gridItem.querySelector('input[type="checkbox"]');
+            if (gridCheckbox) gridCheckbox.checked = enhancedCheckbox.checked;
+          }
+
+          if (listItem) {
+            const listCheckbox = listItem.querySelector('input[type="checkbox"]');
+            if (listCheckbox) listCheckbox.checked = enhancedCheckbox.checked;
+          }
+
+          // Refresh template display to save changes persistently
+          refreshTemplateDisplay().catch(error => {
+            consoleError('Error refreshing enhanced mode from Color Toggle:', error);
+          });
+        };
+
+        // Premium indicator (droplet for premium colors only)
+        const premiumIcon = document.createElement('div');
+        if (!color.free) {
+          premiumIcon.textContent = "💧";
+          premiumIcon.title = "Premium color";
+          premiumIcon.style.cssText = `
           width: 14px;
           height: 14px;
           display: flex;
@@ -6861,239 +6861,239 @@ function buildColorFilterOverlay() {
           opacity: 0.8;
           flex-shrink: 0;
         `;
-      } else {
-        // Empty space for free colors to maintain alignment
-        premiumIcon.style.cssText = `
+        } else {
+          // Empty space for free colors to maintain alignment
+          premiumIcon.style.cssText = `
           width: 14px;
           height: 14px;
           flex-shrink: 0;
         `;
-      }
-      
-      controlsContainer.appendChild(premiumIcon);
-      controlsContainer.appendChild(enhancedCheckbox);
-
-      // Click handler - directly toggle color using template methods
-      item.onclick = (e) => {
-        e.stopPropagation();
-        
-        // Get current template
-        const currentTemplate = templateManager.templatesArray?.[0];
-        if (!currentTemplate) {
-          overlayMain.handleDisplayStatus(`No template loaded`);
-          return;
         }
 
-        const rgb = color.rgb;
-        const wasDisabled = currentTemplate.isColorDisabled(rgb);
-        
-        // Find the corresponding grid/list items for visual sync
-        const gridItem = colorViewContainer.querySelector(`[data-color-rgb="${colorKey}"]`);
-        const listItem = colorViewContainer.querySelector(`[data-color-rgb="${colorKey}"].bmcf-list-item`);
-        
-        if (wasDisabled) {
-          // Enable the color
-          currentTemplate.enableColor(rgb);
-          
-          // Update grid item visual
-          if (gridItem) {
-            gridItem.style.border = '3px solid #4caf50';
-            const overlay = gridItem.querySelector('div[style*="position: absolute"]');
-            if (overlay) overlay.remove();
-            const enhancedCheckbox = gridItem.querySelector('input[type="checkbox"]');
-            if (enhancedCheckbox) enhancedCheckbox.disabled = false;
+        controlsContainer.appendChild(premiumIcon);
+        controlsContainer.appendChild(enhancedCheckbox);
+
+        // Click handler - directly toggle color using template methods
+        item.onclick = (e) => {
+          e.stopPropagation();
+
+          // Get current template
+          const currentTemplate = templateManager.templatesArray?.[0];
+          if (!currentTemplate) {
+            overlayMain.handleDisplayStatus(`No template loaded`);
+            return;
           }
-          
-          // Update list item visual
-          if (listItem) {
-            listItem.style.border = '2px solid #4caf50';
-            listItem.style.opacity = '1';
-            const listEnhancedCheckbox = listItem.querySelector('input[type="checkbox"]');
-            if (listEnhancedCheckbox) listEnhancedCheckbox.disabled = false;
-          }
-          
-          // Update compact list visual
-          item.style.opacity = '1';
-          item.style.background = '';
-          
-          overlayMain.handleDisplayStatus(`Color enabled: ${color.name}`);
-        } else {
-          // Disable the color
-          currentTemplate.disableColor(rgb);
-          
-          // Update grid item visual
-          if (gridItem) {
-            gridItem.style.border = '3px solid #f44336';
-            // Add disabled overlay
-            const colorClickArea = gridItem.querySelector('[style*="cursor: pointer"]');
-            if (colorClickArea && !colorClickArea.querySelector('div[style*="position: absolute"]')) {
-              const disabledOverlay = document.createElement('div');
-              disabledOverlay.style.cssText = `
+
+          const rgb = color.rgb;
+          const wasDisabled = currentTemplate.isColorDisabled(rgb);
+
+          // Find the corresponding grid/list items for visual sync
+          const gridItem = colorViewContainer.querySelector(`[data-color-rgb="${colorKey}"]`);
+          const listItem = colorViewContainer.querySelector(`[data-color-rgb="${colorKey}"].bmcf-list-item`);
+
+          if (wasDisabled) {
+            // Enable the color
+            currentTemplate.enableColor(rgb);
+
+            // Update grid item visual
+            if (gridItem) {
+              gridItem.style.border = '3px solid #4caf50';
+              const overlay = gridItem.querySelector('div[style*="position: absolute"]');
+              if (overlay) overlay.remove();
+              const enhancedCheckbox = gridItem.querySelector('input[type="checkbox"]');
+              if (enhancedCheckbox) enhancedCheckbox.disabled = false;
+            }
+
+            // Update list item visual
+            if (listItem) {
+              listItem.style.border = '2px solid #4caf50';
+              listItem.style.opacity = '1';
+              const listEnhancedCheckbox = listItem.querySelector('input[type="checkbox"]');
+              if (listEnhancedCheckbox) listEnhancedCheckbox.disabled = false;
+            }
+
+            // Update compact list visual
+            item.style.opacity = '1';
+            item.style.background = '';
+
+            overlayMain.handleDisplayStatus(`Color enabled: ${color.name}`);
+          } else {
+            // Disable the color
+            currentTemplate.disableColor(rgb);
+
+            // Update grid item visual
+            if (gridItem) {
+              gridItem.style.border = '3px solid #f44336';
+              // Add disabled overlay
+              const colorClickArea = gridItem.querySelector('[style*="cursor: pointer"]');
+              if (colorClickArea && !colorClickArea.querySelector('div[style*="position: absolute"]')) {
+                const disabledOverlay = document.createElement('div');
+                disabledOverlay.style.cssText = `
                 position: absolute; top: 0; left: 0; right: 0; bottom: 0;
                 background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center;
                 font-size: 24px; color: #f44336; pointer-events: none;
               `;
-              disabledOverlay.textContent = '✕';
-              colorClickArea.appendChild(disabledOverlay);
+                disabledOverlay.textContent = '✕';
+                colorClickArea.appendChild(disabledOverlay);
+              }
+              const enhancedCheckbox = gridItem.querySelector('input[type="checkbox"]');
+              if (enhancedCheckbox) enhancedCheckbox.disabled = true;
             }
-            const enhancedCheckbox = gridItem.querySelector('input[type="checkbox"]');
-            if (enhancedCheckbox) enhancedCheckbox.disabled = true;
-          }
-          
-          // Update list item visual
-          if (listItem) {
-            listItem.style.border = '2px solid #f44336';
-            listItem.style.opacity = '0.5';
-            const listEnhancedCheckbox = listItem.querySelector('input[type="checkbox"]');
-            if (listEnhancedCheckbox) listEnhancedCheckbox.disabled = true;
-          }
-          
-          // Update compact list visual
-          item.style.opacity = '0.5';
-          item.style.background = 'rgba(244, 67, 54, 0.1)';
-          
-          overlayMain.handleDisplayStatus(`Color disabled: ${color.name}`);
-        }
 
-        // Update progress display after the toggle
-        setTimeout(() => {
-          const freshStats = templateManager.calculateRemainingPixelsByColor(0, true); // Only enabled templates
-          const freshPainted = freshStats[colorKey]?.painted || 0;
-          const freshRemaining = freshStats[colorKey]?.needsCrosshair || 0;
-          
-          // Update the progress line in the name element
-          const freshTotalPixels = freshPainted + freshRemaining;
-          const freshProgressPercent = freshTotalPixels > 0 ? Math.round((freshPainted / freshTotalPixels) * 100) : 0;
-          
-          name.innerHTML = `
+            // Update list item visual
+            if (listItem) {
+              listItem.style.border = '2px solid #f44336';
+              listItem.style.opacity = '0.5';
+              const listEnhancedCheckbox = listItem.querySelector('input[type="checkbox"]');
+              if (listEnhancedCheckbox) listEnhancedCheckbox.disabled = true;
+            }
+
+            // Update compact list visual
+            item.style.opacity = '0.5';
+            item.style.background = 'rgba(244, 67, 54, 0.1)';
+
+            overlayMain.handleDisplayStatus(`Color disabled: ${color.name}`);
+          }
+
+          // Update progress display after the toggle
+          setTimeout(() => {
+            const freshStats = templateManager.calculateRemainingPixelsByColor(0, true); // Only enabled templates
+            const freshPainted = freshStats[colorKey]?.painted || 0;
+            const freshRemaining = freshStats[colorKey]?.needsCrosshair || 0;
+
+            // Update the progress line in the name element
+            const freshTotalPixels = freshPainted + freshRemaining;
+            const freshProgressPercent = freshTotalPixels > 0 ? Math.round((freshPainted / freshTotalPixels) * 100) : 0;
+
+            name.innerHTML = `
             <div style="font-weight: 600; margin-bottom: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${color.name}</div>
             <div style="font-size: 8px; color: var(--bmcf-text-muted); opacity: 0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
               ${freshPainted.toLocaleString()}/${freshTotalPixels.toLocaleString()} (${freshProgressPercent}%) | ${freshRemaining.toLocaleString()} left
             </div>
           `;
-        }, 100);
-      };
+          }, 100);
+        };
 
-      item.appendChild(swatch);
-      item.appendChild(name);
-      item.appendChild(controlsContainer);
-      compactContent.appendChild(item);
-      allCompactItems.push(item);
-    });
-
-    // Apply initial sort
-    applyCompactSort(savedSort);
-    
-    // Add search functionality
-    const applySearch = (searchTerm) => {
-      const items = Array.from(compactContent.children);
-      const term = searchTerm.toLowerCase().trim();
-      
-      let visibleCount = 0;
-      items.forEach(item => {
-        // Skip the no-results message element
-        if (item.classList.contains('no-results-msg')) return;
-        
-        const colorNameElement = item.querySelector('.bmcf-compact-name');
-        const colorName = colorNameElement?.textContent.toLowerCase() || '';
-        const isVisible = term === '' || colorName.includes(term);
-        
-        item.style.display = isVisible ? 'flex' : 'none';
-        if (isVisible) visibleCount++;
+        item.appendChild(swatch);
+        item.appendChild(name);
+        item.appendChild(controlsContainer);
+        compactContent.appendChild(item);
+        allCompactItems.push(item);
       });
-      
-      // Show "No results" message if no colors match
-      let noResultsMsg = compactContent.querySelector('.no-results-msg');
-      if (visibleCount === 0 && term !== '') {
-        if (!noResultsMsg) {
-          noResultsMsg = document.createElement('div');
-          noResultsMsg.className = 'no-results-msg';
-          noResultsMsg.style.cssText = `
+
+      // Apply initial sort
+      applyCompactSort(savedSort);
+
+      // Add search functionality
+      const applySearch = (searchTerm) => {
+        const items = Array.from(compactContent.children);
+        const term = searchTerm.toLowerCase().trim();
+
+        let visibleCount = 0;
+        items.forEach(item => {
+          // Skip the no-results message element
+          if (item.classList.contains('no-results-msg')) return;
+
+          const colorNameElement = item.querySelector('.bmcf-compact-name');
+          const colorName = colorNameElement?.textContent.toLowerCase() || '';
+          const isVisible = term === '' || colorName.includes(term);
+
+          item.style.display = isVisible ? 'flex' : 'none';
+          if (isVisible) visibleCount++;
+        });
+
+        // Show "No results" message if no colors match
+        let noResultsMsg = compactContent.querySelector('.no-results-msg');
+        if (visibleCount === 0 && term !== '') {
+          if (!noResultsMsg) {
+            noResultsMsg = document.createElement('div');
+            noResultsMsg.className = 'no-results-msg';
+            noResultsMsg.style.cssText = `
             padding: 20px;
             text-align: center;
             color: var(--bmcf-text-muted);
             font-size: 12px;
             font-style: italic;
           `;
-          noResultsMsg.textContent = 'No colors found';
-          compactContent.appendChild(noResultsMsg);
+            noResultsMsg.textContent = 'No colors found';
+            compactContent.appendChild(noResultsMsg);
+          }
+          noResultsMsg.style.display = 'block';
+        } else if (noResultsMsg) {
+          noResultsMsg.style.display = 'none';
         }
-        noResultsMsg.style.display = 'block';
-      } else if (noResultsMsg) {
-        noResultsMsg.style.display = 'none';
-      }
-    };
-    
-    // Add search input event listener
-    searchInput.addEventListener('input', (e) => {
-      applySearch(e.target.value);
-    });
-    
-    // Prevent any interference with spacebar and other keys
-    searchInput.addEventListener('keydown', (e) => {
-      // Allow all normal typing including spacebar
-      e.stopPropagation();
-    });
+      };
 
-    searchInput.addEventListener('keyup', (e) => {
-      // Allow all normal typing including spacebar
-      e.stopPropagation();
-    });
+      // Add search input event listener
+      searchInput.addEventListener('input', (e) => {
+        applySearch(e.target.value);
+      });
 
-    searchInput.addEventListener('keypress', (e) => {
-      // Allow all normal typing including spacebar
-      e.stopPropagation();
-    });
-    
-    // Add keyboard shortcut for search (Ctrl+F)
-    compactList.addEventListener('keydown', (e) => {
-      if (e.ctrlKey && e.key === 'f') {
-        e.preventDefault();
-        searchInput.focus();
-        searchInput.select();
-      }
-      
-      // Escape to clear search
-      if (e.key === 'Escape' && document.activeElement === searchInput) {
-        searchInput.value = '';
-        applySearch('');
-        searchInput.blur();
-      }
-    });
+      // Prevent any interference with spacebar and other keys
+      searchInput.addEventListener('keydown', (e) => {
+        // Allow all normal typing including spacebar
+        e.stopPropagation();
+      });
 
-    // Add compact list to body (separate floating window)
-    document.body.appendChild(compactList);
+      searchInput.addEventListener('keyup', (e) => {
+        // Allow all normal typing including spacebar
+        e.stopPropagation();
+      });
+
+      searchInput.addEventListener('keypress', (e) => {
+        // Allow all normal typing including spacebar
+        e.stopPropagation();
+      });
+
+      // Add keyboard shortcut for search (Ctrl+F)
+      compactList.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.key === 'f') {
+          e.preventDefault();
+          searchInput.focus();
+          searchInput.select();
+        }
+
+        // Escape to clear search
+        if (e.key === 'Escape' && document.activeElement === searchInput) {
+          searchInput.value = '';
+          applySearch('');
+          searchInput.blur();
+        }
+      });
+
+      // Add compact list to body (separate floating window)
+      document.body.appendChild(compactList);
     } // End of shouldCreateCompactList
 
     // Function to update compact list data
-    window.updateCompactListData = function(existingList) {
+    window.updateCompactListData = function (existingList) {
       const compactContent = existingList.querySelector('div[style*="overflow-y: auto"]');
       if (!compactContent) return;
-      
+
       // Get fresh data
       const freshPixelStats = templateManager.calculateRemainingPixelsByColor(0, true); // Only enabled templates
       const templateInstance = templateManager.templatesArray?.[0];
-      
+
       // Update each item
       utils.colorpalette.forEach((color, index) => {
         if (index === 0) return; // Skip transparent
-        
+
         const colorKey = `${color.rgb[0]},${color.rgb[1]},${color.rgb[2]}`;
         const item = compactContent.querySelector(`[data-color-rgb="${colorKey}"]`);
-        
+
         if (item) {
           const stats = freshPixelStats[colorKey] || {};
           const painted = stats.painted || 0;
           const remaining = stats.needsCrosshair || 0;
           const totalPixels = painted + remaining;
           const progressPercent = totalPixels > 0 ? Math.round((painted / totalPixels) * 100) : 0;
-          
+
           // Update data attributes for sorting
           item.setAttribute('data-remaining', remaining.toString());
           item.setAttribute('data-painted', painted.toString());
           item.setAttribute('data-total', totalPixels.toString());
           item.setAttribute('data-progress', progressPercent.toString());
-          
+
           // Update progress text
           const nameDiv = item.querySelector('div[style*="flex: 1"]');
           if (nameDiv) {
@@ -7104,7 +7104,7 @@ function buildColorFilterOverlay() {
               </div>
             `;
           }
-          
+
           // Update visual state based on template
           const isDisabled = templateInstance ? templateInstance.isColorDisabled(color.rgb) : false;
           if (isDisabled) {
@@ -7114,7 +7114,7 @@ function buildColorFilterOverlay() {
             item.style.opacity = '1';
             item.style.background = '';
           }
-          
+
           // Update enhanced checkbox
           const checkbox = item.querySelector('input[type="checkbox"]');
           if (checkbox && templateInstance && templateInstance.enhancedColors) {
@@ -7129,7 +7129,7 @@ function buildColorFilterOverlay() {
     compactListButton.onclick = () => {
       // Check if there's already an existing compact list
       const existingCompactList = document.getElementById('bmcf-compact-list');
-      
+
       if (existingCompactList) {
         // Reuse existing list
         const isVisible = existingCompactList.style.display !== 'none';
@@ -7140,7 +7140,7 @@ function buildColorFilterOverlay() {
           existingCompactList.style.display = 'flex';
           existingCompactList.style.flexDirection = 'column';
           compactListButton.style.background = 'linear-gradient(135deg, var(--blue-600), var(--blue-700))';
-          
+
           // Update the existing list with fresh data
           updateCompactListData(existingCompactList);
         }
@@ -7161,9 +7161,9 @@ function buildColorFilterOverlay() {
     // Set up automatic updates for compact list
     const originalRefreshTemplateDisplay = window.refreshTemplateDisplay;
     if (originalRefreshTemplateDisplay && typeof originalRefreshTemplateDisplay === 'function') {
-      window.refreshTemplateDisplay = async function(...args) {
+      window.refreshTemplateDisplay = async function (...args) {
         const result = await originalRefreshTemplateDisplay.apply(this, args);
-        
+
         // Update compact list if it exists and is visible
         const existingCompactList = document.getElementById('bmcf-compact-list');
         if (existingCompactList && existingCompactList.style.display !== 'none') {
@@ -7173,11 +7173,11 @@ function buildColorFilterOverlay() {
             }
           }, 200); // Small delay to ensure stats are updated
         }
-        
+
         return result;
       };
     }
-    
+
     colorFilterOverlay.appendChild(contentContainer);
     colorFilterOverlay.appendChild(footerContainer);
 
@@ -7200,24 +7200,24 @@ function buildColorFilterOverlay() {
       isDragging = true;
       dragStartX = e.clientX;
       dragStartY = e.clientY;
-      
+
       // Get current position
       const rect = colorFilterOverlay.getBoundingClientRect();
       initialLeft = rect.left;
       initialTop = rect.top;
-      
+
       // Change to absolute positioning for dragging
       colorFilterOverlay.style.position = 'fixed';
       colorFilterOverlay.style.transform = 'none';
       colorFilterOverlay.style.left = initialLeft + 'px';
       colorFilterOverlay.style.top = initialTop + 'px';
-      
+
       // Change cursor and drag bar style
       header.style.cursor = 'grabbing';
       dragBar.style.cursor = 'grabbing';
       dragBar.style.opacity = '1';
       colorFilterOverlay.style.userSelect = 'none';
-      
+
       e.preventDefault();
     });
 
@@ -7225,13 +7225,13 @@ function buildColorFilterOverlay() {
     header.addEventListener('touchstart', (e) => {
       const t = e.touches && e.touches[0];
       if (!t) return;
-      
+
       // Check if the touch target is a button - if so, don't start dragging
       const target = e.target;
       if (target.tagName === 'BUTTON' || target.closest('button')) {
         return; // Let the button handle the touch event
       }
-      
+
       isDragging = true;
       dragStartX = t.clientX;
       dragStartY = t.clientY;
@@ -7248,20 +7248,20 @@ function buildColorFilterOverlay() {
 
     document.addEventListener('mousemove', (e) => {
       if (!isDragging) return;
-      
+
       const deltaX = e.clientX - dragStartX;
       const deltaY = e.clientY - dragStartY;
-      
+
       const newLeft = initialLeft + deltaX;
       const newTop = initialTop + deltaY;
-      
+
       // Keep within viewport bounds
       const maxLeft = window.innerWidth - colorFilterOverlay.offsetWidth;
       const maxTop = window.innerHeight - colorFilterOverlay.offsetHeight;
-      
+
       const clampedLeft = Math.max(0, Math.min(newLeft, maxLeft));
       const clampedTop = Math.max(0, Math.min(newTop, maxTop));
-      
+
       colorFilterOverlay.style.left = clampedLeft + 'px';
       colorFilterOverlay.style.top = clampedTop + 'px';
     });
@@ -7428,33 +7428,33 @@ let eKeyModeActive = false;
  * @since 1.0.0
  */
 function initializeKeyboardShortcuts() {
-  
+
   // Track X key press/release
   document.addEventListener('keydown', (event) => {
     if (event.code === 'KeyX' && !event.repeat) {
       isEKeyPressed = true;
       eKeyModeActive = true;
-      
+
       // Visual feedback - add cursor style to show X mode is active
       document.body.style.cursor = 'crosshair';
-      
+
       // Show notification
       if (typeof overlayMain !== 'undefined' && overlayMain.handleDisplayStatus) {
         overlayMain.handleDisplayStatus('🎹 X-Mode: Click a color to enable enhanced mode for that color only');
       }
     }
   });
-  
+
   document.addEventListener('keyup', (event) => {
     if (event.code === 'KeyX') {
       isEKeyPressed = false;
       eKeyModeActive = false;
-      
+
       // Reset cursor
       document.body.style.cursor = '';
     }
   });
-  
+
   // Handle clicks on color palette buttons when X is pressed
   document.addEventListener('click', handleEKeyColorClick, true);
 }
@@ -7462,23 +7462,23 @@ function initializeKeyboardShortcuts() {
 /** Handle X+Click on color palette */
 function handleEKeyColorClick(event) {
   if (!eKeyModeActive) return;
-  
+
   // Check if clicked element is a color button
   const colorButton = event.target.closest('button[id^="color-"]');
   if (!colorButton) return;
-  
+
   // Prevent normal color selection
   event.preventDefault();
   event.stopPropagation();
-  
+
   const colorId = colorButton.id;
   const rgbColor = COLOR_PALETTE_MAP[colorId];
-  
+
   if (!rgbColor) {
     consoleWarn(`🎹 [X-Mode] Unknown color ID: ${colorId}`);
     return;
   }
-  
+
   // Skip transparent color
   if (colorId === 'color-0') {
     if (typeof overlayMain !== 'undefined' && overlayMain.handleDisplayStatus) {
@@ -7486,7 +7486,7 @@ function handleEKeyColorClick(event) {
     }
     return;
   }
-  
+
   // Get current template
   const currentTemplate = templateManager.templatesArray?.[0];
   if (!currentTemplate) {
@@ -7495,26 +7495,26 @@ function handleEKeyColorClick(event) {
     }
     return;
   }
-  
+
   try {
     // Clear all enhanced colors first
     currentTemplate.enhancedColors.clear();
-    
+
     // Enable enhanced mode for the selected color
     currentTemplate.enableColorEnhanced(rgbColor);
-    
+
     // Visual feedback
     const colorName = colorButton.getAttribute('aria-label') || colorId;
     if (typeof overlayMain !== 'undefined' && overlayMain.handleDisplayStatus) {
       overlayMain.handleDisplayStatus(`✅ Enhanced mode enabled for: ${colorName}`);
     }
-    
+
     // Refresh template to apply changes
     refreshTemplateDisplay().then(() => {
     }).catch(error => {
       consoleError('🎹 [X-Mode] Error refreshing template:', error);
     });
-    
+
     // Update color filter overlay if it's open
     const colorFilterOverlay = document.getElementById('bm-color-filter-overlay');
     if (colorFilterOverlay) {
@@ -7524,7 +7524,7 @@ function handleEKeyColorClick(event) {
         buildColorFilterOverlay();
       }, 100);
     }
-    
+
   } catch (error) {
     consoleError('🎹 [X-Mode] Error processing enhanced color:', error);
     if (typeof overlayMain !== 'undefined' && overlayMain.handleDisplayError) {
@@ -7576,12 +7576,12 @@ function toggleErrorMapMode() {
   const currentState = getErrorMapEnabled();
   const newState = !currentState;
   saveErrorMapEnabled(newState);
-  
+
   // Apply to template manager
   if (templateManager) {
     templateManager.setErrorMapMode(newState);
   }
-  
+
   // Force template redraw to apply changes
   if (templateManager.templatesArray && templateManager.templatesArray.length > 0) {
     templateManager.setTemplatesShouldBeDrawn(false);
@@ -7597,9 +7597,9 @@ function toggleErrorMapMode() {
 function updatePaletteLeftBadges(pixelStats) {
   if (!getShowLeftOnColorEnabled()) return;
   if (!pixelStats || typeof pixelStats !== 'object') return;
-  
+
   const idToRgb = COLOR_PALETTE_MAP || {};
-  
+
   Object.entries(idToRgb).forEach(([colorId, rgb]) => {
     const btn = document.querySelector(`button#${CSS.escape(colorId)}`);
     if (!btn) return;
@@ -7607,7 +7607,7 @@ function updatePaletteLeftBadges(pixelStats) {
     const key = `${rgb[0]},${rgb[1]},${rgb[2]}`;
     const stats = pixelStats[key];
     const left = stats && typeof stats.needsCrosshair === 'number' ? stats.needsCrosshair : 0;
-    
+
     let badge = btn.querySelector('.bm-left-badge');
     if (!badge) {
       badge = document.createElement('div');
@@ -7643,25 +7643,25 @@ async function refreshTemplateDisplay() {
   if (templateManager.templatesArray && templateManager.templatesArray.length > 0) {
     // Force a complete recreation of the template with current color filter
     try {
-      
+
       // Get the current template
       const currentTemplate = templateManager.templatesArray[0];
-      
+
       // Invalidate enhanced cache when colors change
       currentTemplate.invalidateEnhancedCache();
-      
+
       // Disable templates first to clear the display
       templateManager.setTemplatesShouldBeDrawn(false);
-      
+
       // Wait a moment for the change to take effect
       await new Promise(resolve => setTimeout(resolve, 50));
-      
+
       // Force recreation of template tiles with current color filter
       await templateManager.updateTemplateWithColorFilter(0);
-      
+
       // Re-enable templates to show the updated version
       templateManager.setTemplatesShouldBeDrawn(true);
-      
+
     } catch (error) {
       consoleError('Error refreshing template display:', error);
       overlayMain.handleDisplayError('Failed to apply color filter');
@@ -7670,7 +7670,7 @@ async function refreshTemplateDisplay() {
   } else {
     consoleWarn('No templates available to refresh');
   }
-  
+
   // Update mini tracker after template refresh
   updateMiniTracker();
 }
@@ -7682,30 +7682,30 @@ async function refreshTemplateDisplay() {
 function getCrosshairColor() {
   try {
     let savedColor = null;
-    
+
     // Try TamperMonkey storage first
     if (typeof GM_getValue !== 'undefined') {
       const saved = GM_getValue('bmCrosshairColor', null);
       if (saved) savedColor = JSON.parse(saved);
     }
-    
+
     // Fallback to localStorage
     if (!savedColor) {
       const saved = localStorage.getItem('bmCrosshairColor');
       if (saved) savedColor = JSON.parse(saved);
     }
-    
+
     // Auto-migrate old alpha values (180 -> 255)
     if (savedColor && savedColor.alpha === 180) {
       savedColor.alpha = 255;
       saveCrosshairColor(savedColor); // Save the migrated value
     }
-    
+
     if (savedColor) return savedColor;
   } catch (error) {
     consoleWarn('Failed to load crosshair color:', error);
   }
-  
+
   // Default red color
   return {
     name: 'Red',
@@ -7721,12 +7721,12 @@ function getCrosshairColor() {
 function saveCrosshairColor(colorConfig) {
   try {
     const colorString = JSON.stringify(colorConfig);
-    
+
     // Save to TamperMonkey storage
     if (typeof GM_setValue !== 'undefined') {
       GM_setValue('bmCrosshairColor', colorString);
     }
-    
+
     // Also save to localStorage as backup
     localStorage.setItem('bmCrosshairColor', colorString);
   } catch (error) {
@@ -7741,19 +7741,19 @@ function saveCrosshairColor(colorConfig) {
 function getBorderEnabled() {
   try {
     let borderEnabled = null;
-    
+
     // Try TamperMonkey storage first
     if (typeof GM_getValue !== 'undefined') {
       const saved = GM_getValue('bmCrosshairBorder', null);
       if (saved !== null) borderEnabled = JSON.parse(saved);
     }
-    
+
     // Fallback to localStorage
     if (borderEnabled === null) {
       const saved = localStorage.getItem('bmCrosshairBorder');
       if (saved !== null) borderEnabled = JSON.parse(saved);
     }
-    
+
     if (borderEnabled !== null) {
       return borderEnabled;
     }
@@ -7770,12 +7770,12 @@ function getBorderEnabled() {
 function saveBorderEnabled(enabled) {
   try {
     const enabledString = JSON.stringify(enabled);
-    
+
     // Save to TamperMonkey storage
     if (typeof GM_setValue !== 'undefined') {
       GM_setValue('bmCrosshairBorder', enabledString);
     }
-    
+
     // Also save to localStorage as backup
     localStorage.setItem('bmCrosshairBorder', enabledString);
   } catch (error) {
@@ -7790,7 +7790,7 @@ function saveBorderEnabled(enabled) {
 function getEnhancedSizeEnabled() {
   try {
     let enhancedSizeEnabled = null;
-    
+
     // Try TamperMonkey storage first
     if (typeof GM_getValue !== 'undefined') {
       const saved = GM_getValue('bmCrosshairEnhancedSize', null);
@@ -7798,7 +7798,7 @@ function getEnhancedSizeEnabled() {
         enhancedSizeEnabled = JSON.parse(saved);
       }
     }
-    
+
     // Fallback to localStorage
     if (enhancedSizeEnabled === null) {
       const saved = localStorage.getItem('bmCrosshairEnhancedSize');
@@ -7806,14 +7806,14 @@ function getEnhancedSizeEnabled() {
         enhancedSizeEnabled = JSON.parse(saved);
       }
     }
-    
+
     if (enhancedSizeEnabled !== null) {
       return enhancedSizeEnabled;
     }
   } catch (error) {
     consoleError('Failed to load enhanced size setting:', error);
   }
-  
+
   // Default to disabled
   return false;
 }
@@ -7825,12 +7825,12 @@ function getEnhancedSizeEnabled() {
 function saveEnhancedSizeEnabled(enabled) {
   try {
     const enabledString = JSON.stringify(enabled);
-    
+
     // Save to TamperMonkey storage
     if (typeof GM_setValue !== 'undefined') {
       GM_setValue('bmCrosshairEnhancedSize', enabledString);
     }
-    
+
     // Also save to localStorage as backup
     localStorage.setItem('bmCrosshairEnhancedSize', enabledString);
   } catch (error) {
@@ -7845,7 +7845,7 @@ function saveEnhancedSizeEnabled(enabled) {
 function getCrosshairRadius() {
   try {
     let radiusValue = null;
-    
+
     // Try TamperMonkey storage first
     if (typeof GM_getValue !== 'undefined') {
       const saved = GM_getValue('bmCrosshairRadius', null);
@@ -7853,7 +7853,7 @@ function getCrosshairRadius() {
         radiusValue = JSON.parse(saved);
       }
     }
-    
+
     // Fallback to localStorage
     if (radiusValue === null) {
       const saved = localStorage.getItem('bmCrosshairRadius');
@@ -7861,7 +7861,7 @@ function getCrosshairRadius() {
         radiusValue = JSON.parse(saved);
       }
     }
-    
+
     if (radiusValue !== null) {
       // Ensure value is within valid range
       return Math.max(12, Math.min(32, radiusValue));
@@ -7869,7 +7869,7 @@ function getCrosshairRadius() {
   } catch (error) {
     consoleError('Failed to load crosshair radius setting:', error);
   }
-  
+
   return 16; // Default radius (between min 12 and max 32)
 }
 
@@ -7882,12 +7882,12 @@ function saveCrosshairRadius(radius) {
     // Ensure value is within valid range
     const clampedRadius = Math.max(12, Math.min(32, radius));
     const radiusString = JSON.stringify(clampedRadius);
-    
+
     // Save to TamperMonkey storage
     if (typeof GM_setValue !== 'undefined') {
       GM_setValue('bmCrosshairRadius', radiusString);
     }
-    
+
     // Also save to localStorage as backup
     localStorage.setItem('bmCrosshairRadius', radiusString);
   } catch (error) {
@@ -7902,26 +7902,26 @@ function saveCrosshairRadius(radius) {
 function getMiniTrackerEnabled() {
   try {
     let trackerEnabled = null;
-    
+
     // Try TamperMonkey storage first
     if (typeof GM_getValue !== 'undefined') {
       const saved = GM_getValue('bmMiniTracker', null);
       if (saved !== null) trackerEnabled = JSON.parse(saved);
     }
-    
+
     // Fallback to localStorage
     if (trackerEnabled === null) {
       const saved = localStorage.getItem('bmMiniTracker');
       if (saved !== null) trackerEnabled = JSON.parse(saved);
     }
-    
+
     if (trackerEnabled !== null) {
       return trackerEnabled;
     }
   } catch (error) {
     consoleWarn('Failed to load mini tracker setting:', error);
   }
-  
+
   // Default to disabled
   return false;
 }
@@ -7933,12 +7933,12 @@ function getMiniTrackerEnabled() {
 function saveMiniTrackerEnabled(enabled) {
   try {
     const enabledString = JSON.stringify(enabled);
-    
+
     // Save to TamperMonkey storage
     if (typeof GM_setValue !== 'undefined') {
       GM_setValue('bmMiniTracker', enabledString);
     }
-    
+
     // Also save to localStorage as backup
     localStorage.setItem('bmMiniTracker', enabledString);
   } catch (error) {
@@ -7953,26 +7953,26 @@ function saveMiniTrackerEnabled(enabled) {
 function getCollapseMinEnabled() {
   try {
     let collapseEnabled = null;
-    
+
     // Try TamperMonkey storage first
     if (typeof GM_getValue !== 'undefined') {
       const saved = GM_getValue('bmCollapseMin', null);
       if (saved !== null) collapseEnabled = JSON.parse(saved);
     }
-    
+
     // Fallback to localStorage
     if (collapseEnabled === null) {
       const saved = localStorage.getItem('bmCollapseMin');
       if (saved !== null) collapseEnabled = JSON.parse(saved);
     }
-    
+
     if (collapseEnabled !== null) {
       return collapseEnabled;
     }
   } catch (error) {
     consoleWarn('Failed to load collapse mini template setting:', error);
   }
-  
+
   // Default to enabled
   return true;
 }
@@ -7984,12 +7984,12 @@ function getCollapseMinEnabled() {
 function saveCollapseMinEnabled(enabled) {
   try {
     const enabledString = JSON.stringify(enabled);
-    
+
     // Save to TamperMonkey storage
     if (typeof GM_setValue !== 'undefined') {
       GM_setValue('bmCollapseMin', enabledString);
     }
-    
+
     // Also save to localStorage as backup
     localStorage.setItem('bmCollapseMin', enabledString);
   } catch (error) {
@@ -8045,7 +8045,7 @@ function saveShowLeftOnColorEnabled(enabled) {
       GM_setValue('bmShowLeftOnColor', enabledString);
     }
     localStorage.setItem('bmShowLeftOnColor', enabledString);
-    
+
     // Restart the left badges auto-update system with the new setting
     startLeftBadgesAutoUpdate();
   } catch (error) {
@@ -8082,13 +8082,13 @@ function applyMobileModeToColorFilter(enableMobile) {
   if (mobileStyleElement) {
     mobileStyleElement.remove();
   }
-  
+
   if (enableMobile) {
     // Create fresh mobile style element
     mobileStyleElement = document.createElement('style');
     mobileStyleElement.id = 'bmcf-mobile-styles';
     document.head.appendChild(mobileStyleElement);
-    
+
     mobileStyleElement.textContent = `
       /* Dynamic Mobile Mode Styles - Applied Fresh */
       .bmcf-overlay { 
@@ -8208,91 +8208,91 @@ function applyMobileModeToColorFilter(enableMobile) {
  */
 function updateMiniTracker() {
   try {
-  const trackerEnabled = getMiniTrackerEnabled();
-  const collapseEnabled = getCollapseMinEnabled();
-  const existingTracker = document.getElementById('bm-mini-tracker');
-  
-  // Check if main overlay is minimized
-  const mainOverlay = document.getElementById('bm-overlay');
+    const trackerEnabled = getMiniTrackerEnabled();
+    const collapseEnabled = getCollapseMinEnabled();
+    const existingTracker = document.getElementById('bm-mini-tracker');
+
+    // Check if main overlay is minimized
+    const mainOverlay = document.getElementById('bm-overlay');
     if (!mainOverlay) {
       consoleWarn('Main overlay not found, skipping mini tracker update');
       return;
     }
     const isMainMinimized = mainOverlay && (mainOverlay.style.width === '60px' || mainOverlay.style.height === '76px' || mainOverlay.style.width === '72px');
-  
-  // Hide tracker if disabled OR if collapse is enabled and main is minimized
-  if (!trackerEnabled || (collapseEnabled && isMainMinimized)) {
-    if (existingTracker) {
-      existingTracker.remove();
-    }
-    return;
-  }
-  
-  // Calculate progress data using the SAME method as the main progress bar
-  let totalRequired = 0;
-  let totalPainted = 0;
-  let totalNeedCrosshair = 0;
-  
-  if (templateManager.templatesArray && templateManager.templatesArray.length > 0) {
-    // Use templateManager.calculateRemainingPixelsByColor() like the main progress bar does
-    const pixelStats = templateManager.calculateRemainingPixelsByColor(0, true); // Only enabled templates
-    
-    // Get excluded colors from localStorage (same as main progress bar)
-    const excludedColors = JSON.parse(localStorage.getItem('bmcf-excluded-colors') || '[]');
-    
-    for (const [colorKey, stats] of Object.entries(pixelStats)) {
-      // Skip excluded colors from mini tracker calculation too
-      if (excludedColors.includes(colorKey)) {
-        continue;
+
+    // Hide tracker if disabled OR if collapse is enabled and main is minimized
+    if (!trackerEnabled || (collapseEnabled && isMainMinimized)) {
+      if (existingTracker) {
+        existingTracker.remove();
       }
-      
-      totalRequired += stats.totalRequired || 0;
-      totalPainted += stats.painted || 0;
-      totalNeedCrosshair += stats.needsCrosshair || 0;
+      return;
     }
-  }
 
-  const progressPercentage = totalRequired > 0 ? Math.round((totalPainted / totalRequired) * 100) / 100 : 0;
+    // Calculate progress data using the SAME method as the main progress bar
+    let totalRequired = 0;
+    let totalPainted = 0;
+    let totalNeedCrosshair = 0;
 
-  // Create or update tracker
-  let tracker = existingTracker;
-  if (!tracker) {
-    tracker = document.createElement('div');
-    tracker.id = 'bm-mini-tracker';
-    
-    // Find the buttons container to position tracker after it
-    const buttonsContainer = document.getElementById('bm-contain-buttons-template');
-    const mainOverlay = document.getElementById('bm-overlay');
-    
-    if (buttonsContainer && mainOverlay) {
-      try {
-        // Insert tracker after the buttons container but before the status textarea
-        const statusTextarea = document.getElementById(overlayMain.outputStatusId);
-        if (statusTextarea && statusTextarea.parentNode === mainOverlay) {
-          mainOverlay.insertBefore(tracker, statusTextarea);
-        } else if (buttonsContainer.parentNode && buttonsContainer.nextSibling) {
-          // Fallback: insert after buttons container
-          buttonsContainer.parentNode.insertBefore(tracker, buttonsContainer.nextSibling);
-        } else {
-          // Last resort: append to main overlay
-          mainOverlay.appendChild(tracker);
+    if (templateManager.templatesArray && templateManager.templatesArray.length > 0) {
+      // Use templateManager.calculateRemainingPixelsByColor() like the main progress bar does
+      const pixelStats = templateManager.calculateRemainingPixelsByColor(0, true); // Only enabled templates
+
+      // Get excluded colors from localStorage (same as main progress bar)
+      const excludedColors = JSON.parse(localStorage.getItem('bmcf-excluded-colors') || '[]');
+
+      for (const [colorKey, stats] of Object.entries(pixelStats)) {
+        // Skip excluded colors from mini tracker calculation too
+        if (excludedColors.includes(colorKey)) {
+          continue;
         }
-      } catch (error) {
-        consoleError('Error inserting mini tracker:', error);
-        // Try to append as fallback
+
+        totalRequired += stats.totalRequired || 0;
+        totalPainted += stats.painted || 0;
+        totalNeedCrosshair += stats.needsCrosshair || 0;
+      }
+    }
+
+    const progressPercentage = totalRequired > 0 ? Math.round((totalPainted / totalRequired) * 10000) / 100 : 0;
+
+    // Create or update tracker
+    let tracker = existingTracker;
+    if (!tracker) {
+      tracker = document.createElement('div');
+      tracker.id = 'bm-mini-tracker';
+
+      // Find the buttons container to position tracker after it
+      const buttonsContainer = document.getElementById('bm-contain-buttons-template');
+      const mainOverlay = document.getElementById('bm-overlay');
+
+      if (buttonsContainer && mainOverlay) {
         try {
-          mainOverlay.appendChild(tracker);
-        } catch (appendError) {
-          consoleError('Failed to append mini tracker:', appendError);
+          // Insert tracker after the buttons container but before the status textarea
+          const statusTextarea = document.getElementById(overlayMain.outputStatusId);
+          if (statusTextarea && statusTextarea.parentNode === mainOverlay) {
+            mainOverlay.insertBefore(tracker, statusTextarea);
+          } else if (buttonsContainer.parentNode && buttonsContainer.nextSibling) {
+            // Fallback: insert after buttons container
+            buttonsContainer.parentNode.insertBefore(tracker, buttonsContainer.nextSibling);
+          } else {
+            // Last resort: append to main overlay
+            mainOverlay.appendChild(tracker);
+          }
+        } catch (error) {
+          consoleError('Error inserting mini tracker:', error);
+          // Try to append as fallback
+          try {
+            mainOverlay.appendChild(tracker);
+          } catch (appendError) {
+            consoleError('Failed to append mini tracker:', appendError);
+          }
         }
       }
     }
-  }
-  
-  // Style the tracker - COMPACT SLATE THEME (responsive to minimized state)
-  const isMainMinimizedForStyle = mainOverlay && (mainOverlay.style.width === '60px' || mainOverlay.style.height === '76px' || mainOverlay.style.width === '72px');
-  
-  tracker.style.cssText = `
+
+    // Style the tracker - COMPACT SLATE THEME (responsive to minimized state)
+    const isMainMinimizedForStyle = mainOverlay && (mainOverlay.style.width === '60px' || mainOverlay.style.height === '76px' || mainOverlay.style.width === '72px');
+
+    tracker.style.cssText = `
     background: linear-gradient(135deg, #1e293b, #334155);
     border: 1px solid #475569;
     border-radius: 12px;
@@ -8310,10 +8310,10 @@ function updateMiniTracker() {
     letter-spacing: -0.01em;
     box-sizing: border-box;
   `;
-  
-  // LAYOUT CSS GRID - HTML LIMPO
-  if (totalRequired === 0) {
-    tracker.innerHTML = `
+
+    // LAYOUT CSS GRID - HTML LIMPO
+    if (totalRequired === 0) {
+      tracker.innerHTML = `
       <div class="tracker-title">📊 Template Progress: 0%</div>
       <div class="tracker-pixels">0 / 0 pixels painted</div>
       <div class="tracker-progress">
@@ -8321,8 +8321,8 @@ function updateMiniTracker() {
       </div>
       <div class="tracker-left">0 Pixels Left</div>
     `;
-  } else {
-    tracker.innerHTML = `
+    } else {
+      tracker.innerHTML = `
       <div class="tracker-title">📊 Template Progress: ${progressPercentage}%</div>
       <div class="tracker-pixels">${totalPainted.toLocaleString()} / ${totalRequired.toLocaleString()} pixels painted</div>
       <div class="tracker-progress">
@@ -8330,11 +8330,11 @@ function updateMiniTracker() {
       </div>
       <div class="tracker-left">${totalNeedCrosshair.toLocaleString()} Pixels Left</div>
     `;
-  }
-  
-  // Aplicar estilos CSS às classes - SLATE THEME COMPACT (fixed styles)
-  const style = document.createElement('style');
-  style.textContent = `
+    }
+
+    // Aplicar estilos CSS às classes - SLATE THEME COMPACT (fixed styles)
+    const style = document.createElement('style');
+    style.textContent = `
     .tracker-title {
       font-size: 1rem;
       font-weight: 700;
@@ -8381,14 +8381,14 @@ function updateMiniTracker() {
       line-height: 1.2;
     }
   `;
-  // Remove existing styles and add updated ones to ensure state changes are reflected
-  const existingStyle = document.getElementById('tracker-styles');
-  if (existingStyle) {
-    existingStyle.remove();
-  }
-  style.id = 'tracker-styles';
-  document.head.appendChild(style);
-  
+    // Remove existing styles and add updated ones to ensure state changes are reflected
+    const existingStyle = document.getElementById('tracker-styles');
+    if (existingStyle) {
+      existingStyle.remove();
+    }
+    style.id = 'tracker-styles';
+    document.head.appendChild(style);
+
   } catch (error) {
     consoleError('❌ Error updating mini tracker:', error);
     // Clean up any problematic tracker
@@ -8411,7 +8411,7 @@ function startMiniTrackerAutoUpdate() {
   if (miniTrackerAutoUpdateInterval) {
     clearInterval(miniTrackerAutoUpdateInterval);
   }
-  
+
   // Only start auto-update if mini tracker is enabled
   if (getMiniTrackerEnabled()) {
     miniTrackerAutoUpdateInterval = setInterval(() => {
@@ -8433,17 +8433,17 @@ let leftBadgesAutoUpdateInterval = null;
 function updateLeftBadgesOnly() {
   // Only update if the setting is enabled
   if (!getShowLeftOnColorEnabled()) return;
-  
+
   // Check if templates are available
   if (!templateManager.templatesArray || templateManager.templatesArray.length === 0) return;
-  
+
   try {
     // Calculate pixel statistics
     const pixelStats = templateManager.calculateRemainingPixelsByColor(0, true); // Only enabled templates
-    
+
     // Update the palette badges
     updatePaletteLeftBadges(pixelStats);
-    
+
   } catch (error) {
     consoleWarn('Failed to auto-update left badges:', error);
   }
@@ -8454,7 +8454,7 @@ function startLeftBadgesAutoUpdate() {
   if (leftBadgesAutoUpdateInterval) {
     clearInterval(leftBadgesAutoUpdateInterval);
   }
-  
+
   // Only start auto-update if left badges are enabled
   if (getShowLeftOnColorEnabled()) {
     leftBadgesAutoUpdateInterval = setInterval(() => {
@@ -8478,7 +8478,7 @@ function startCompactListAutoUpdate() {
   if (compactListAutoUpdateInterval) {
     clearInterval(compactListAutoUpdateInterval);
   }
-  
+
   // Start auto-update interval
   compactListAutoUpdateInterval = setInterval(() => {
     const existingCompactList = document.getElementById('bmcf-compact-list');
@@ -8496,7 +8496,7 @@ setTimeout(() => {
   startMiniTrackerAutoUpdate();
   startLeftBadgesAutoUpdate();
   startCompactListAutoUpdate();
-  
+
   // Pin functionality removed - Color Toggle is now just a simple toggle without persistence
 }, 2000); // Start after 2 seconds to let everything initialize
 
@@ -8577,14 +8577,14 @@ function buildCrosshairSettingsOverlay() {
 
     // Get current crosshair color
     const currentColor = getCrosshairColor();
-    
+
     // Track temporary settings (before confirm)
     let tempColor = { ...currentColor };
-    
+
     // If current color is custom, ensure it has the isCustom flag
-    if (!tempColor.isCustom && !colorOptions.filter(c => !c.isCustom).some(predefined => 
-        JSON.stringify(predefined.rgb) === JSON.stringify(tempColor.rgb)
-      )) {
+    if (!tempColor.isCustom && !colorOptions.filter(c => !c.isCustom).some(predefined =>
+      JSON.stringify(predefined.rgb) === JSON.stringify(tempColor.rgb)
+    )) {
       tempColor.isCustom = true;
       tempColor.name = 'Custom';
     }
@@ -8596,7 +8596,7 @@ function buildCrosshairSettingsOverlay() {
     // Create the settings overlay
     const settingsOverlay = document.createElement('div');
     settingsOverlay.id = 'bm-crosshair-settings-overlay';
-    
+
     // Check if mobile mode is enabled for compact layout
     const isMobileMode = getMobileMode();
     const mobileStyles = isMobileMode ? `
@@ -8608,7 +8608,7 @@ function buildCrosshairSettingsOverlay() {
       max-height: 85vh;
       border-radius: 20px;
     `;
-    
+
     settingsOverlay.style.cssText = `
       position: fixed;
       top: 50%;
@@ -8627,9 +8627,9 @@ function buildCrosshairSettingsOverlay() {
       backdrop-filter: blur(16px);
       overflow: hidden;
     `;
-  
-  // Add subtle background pattern
-  settingsOverlay.innerHTML = `
+
+    // Add subtle background pattern
+    settingsOverlay.innerHTML = `
     <div style="
       position: absolute; inset: 0; border-radius: 20px;
       background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(16, 185, 129, 0.05));
@@ -8637,10 +8637,10 @@ function buildCrosshairSettingsOverlay() {
     "></div>
   `;
 
-  // Header
-  const header = document.createElement('div');
-  const headerPadding = isMobileMode ? '8px 12px' : '16px 20px';
-  header.style.cssText = `
+    // Header
+    const header = document.createElement('div');
+    const headerPadding = isMobileMode ? '8px 12px' : '16px 20px';
+    header.style.cssText = `
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -8654,10 +8654,10 @@ function buildCrosshairSettingsOverlay() {
     z-index: 1;
   `;
 
-  const title = document.createElement('h2');
-  title.textContent = 'Settings';
-  const titleFontSize = isMobileMode ? '1.2em' : '1.5em';
-  title.style.cssText = `
+    const title = document.createElement('h2');
+    title.textContent = 'Settings';
+    const titleFontSize = isMobileMode ? '1.2em' : '1.5em';
+    title.style.cssText = `
     margin: 0; 
     font-size: ${titleFontSize}; 
     font-weight: 700;
@@ -8672,9 +8672,9 @@ function buildCrosshairSettingsOverlay() {
     background-clip: text;
   `;
 
-  const closeButton = document.createElement('button');
-  closeButton.textContent = '✕';
-  closeButton.style.cssText = `
+    const closeButton = document.createElement('button');
+    closeButton.textContent = '✕';
+    closeButton.style.cssText = `
     background: linear-gradient(135deg, #ef4444, #dc2626);
     border: 1px solid rgba(239, 68, 68, 0.3);
     color: white;
@@ -8691,33 +8691,33 @@ function buildCrosshairSettingsOverlay() {
     position: relative;
     overflow: hidden;
   `;
-  // Add hover effects but prevent them on touch devices
-  closeButton.onmouseover = () => {
-    closeButton.style.transform = 'translateY(-1px) scale(1.05)';
-    closeButton.style.boxShadow = '0 6px 20px rgba(239, 68, 68, 0.4)';
-  };
-  closeButton.onmouseout = () => {
-    closeButton.style.transform = '';
-    closeButton.style.boxShadow = '';
-  };
-  
-  // Prevent hover effects on touch by immediately resetting styles on touchstart
-  closeButton.addEventListener('touchstart', () => {
-    closeButton.style.transform = '';
-    closeButton.style.boxShadow = '';
-  }, { passive: true });
-  
-  closeButton.onclick = () => settingsOverlay.remove();
+    // Add hover effects but prevent them on touch devices
+    closeButton.onmouseover = () => {
+      closeButton.style.transform = 'translateY(-1px) scale(1.05)';
+      closeButton.style.boxShadow = '0 6px 20px rgba(239, 68, 68, 0.4)';
+    };
+    closeButton.onmouseout = () => {
+      closeButton.style.transform = '';
+      closeButton.style.boxShadow = '';
+    };
 
-  header.appendChild(title);
-  header.appendChild(closeButton);
+    // Prevent hover effects on touch by immediately resetting styles on touchstart
+    closeButton.addEventListener('touchstart', () => {
+      closeButton.style.transform = '';
+      closeButton.style.boxShadow = '';
+    }, { passive: true });
 
-  // Instructions
-  const instructions = document.createElement('p');
-  instructions.textContent = 'Select the crosshair color that appears on highlighted template pixels:';
-  const instructionsMargin = isMobileMode ? '0 0 16px 0' : '0 0 24px 0';
-  const instructionsFontSize = isMobileMode ? '0.9em' : '0.95em';
-  instructions.style.cssText = `
+    closeButton.onclick = () => settingsOverlay.remove();
+
+    header.appendChild(title);
+    header.appendChild(closeButton);
+
+    // Instructions
+    const instructions = document.createElement('p');
+    instructions.textContent = 'Select the crosshair color that appears on highlighted template pixels:';
+    const instructionsMargin = isMobileMode ? '0 0 16px 0' : '0 0 24px 0';
+    const instructionsFontSize = isMobileMode ? '0.9em' : '0.95em';
+    instructions.style.cssText = `
     margin: ${instructionsMargin}; 
     font-size: ${instructionsFontSize}; 
     color: var(--slate-300); 
@@ -8727,12 +8727,12 @@ function buildCrosshairSettingsOverlay() {
     line-height: 1.4;
   `;
 
-  // Current color preview
-  const currentColorPreview = document.createElement('div');
-  const previewPadding = isMobileMode ? '12px' : '20px';
-  const previewMargin = isMobileMode ? '16px' : '24px';
-  const previewBorderRadius = isMobileMode ? '12px' : '16px';
-  currentColorPreview.style.cssText = `
+    // Current color preview
+    const currentColorPreview = document.createElement('div');
+    const previewPadding = isMobileMode ? '12px' : '20px';
+    const previewMargin = isMobileMode ? '16px' : '24px';
+    const previewBorderRadius = isMobileMode ? '12px' : '16px';
+    currentColorPreview.style.cssText = `
     background: linear-gradient(135deg, var(--slate-800), var(--slate-750));
     border: 1px solid var(--slate-700);
     border-radius: ${previewBorderRadius};
@@ -8743,9 +8743,9 @@ function buildCrosshairSettingsOverlay() {
     overflow: hidden;
   `;
 
-  const previewLabel = document.createElement('div');
-  previewLabel.textContent = 'Current Color:';
-  previewLabel.style.cssText = `
+    const previewLabel = document.createElement('div');
+    previewLabel.textContent = 'Current Color:';
+    previewLabel.style.cssText = `
     font-size: 1em; 
     margin-bottom: 12px; 
     color: var(--slate-200);
@@ -8753,9 +8753,9 @@ function buildCrosshairSettingsOverlay() {
     letter-spacing: -0.01em;
   `;
 
-  const previewColor = document.createElement('div');
-  previewColor.id = 'bm-current-color-preview';
-  previewColor.style.cssText = `
+    const previewColor = document.createElement('div');
+    previewColor.id = 'bm-current-color-preview';
+    previewColor.style.cssText = `
     width: 60px;
     height: 60px;
     margin: 0 auto 12px;
@@ -8766,24 +8766,24 @@ function buildCrosshairSettingsOverlay() {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     transition: all 0.2s ease;
   `;
-  previewColor.onmouseover = () => {
-    previewColor.style.transform = 'scale(1.05)';
-    previewColor.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.6)';
-  };
-  previewColor.onmouseout = () => {
-    previewColor.style.transform = '';
-    previewColor.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.4)';
-  };
-  
-  // Create crosshair preview pattern (simple cross: center + 4 sides)
-  function updateCrosshairPreview(color, borderEnabled, enhancedSize = false) {
-    const { rgb, alpha } = color;
-    const colorRgba = `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${alpha / 255})`;
-    const borderRgba = borderEnabled ? 'rgba(0, 100, 255, 0.8)' : 'transparent'; // Blue borders
-    
-    if (enhancedSize) {
-      // Enhanced 5x size crosshair preview (extends beyond center)
-      previewColor.innerHTML = `
+    previewColor.onmouseover = () => {
+      previewColor.style.transform = 'scale(1.05)';
+      previewColor.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.6)';
+    };
+    previewColor.onmouseout = () => {
+      previewColor.style.transform = '';
+      previewColor.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.4)';
+    };
+
+    // Create crosshair preview pattern (simple cross: center + 4 sides)
+    function updateCrosshairPreview(color, borderEnabled, enhancedSize = false) {
+      const { rgb, alpha } = color;
+      const colorRgba = `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${alpha / 255})`;
+      const borderRgba = borderEnabled ? 'rgba(0, 100, 255, 0.8)' : 'transparent'; // Blue borders
+
+      if (enhancedSize) {
+        // Enhanced 5x size crosshair preview (extends beyond center)
+        previewColor.innerHTML = `
         <div style="
           position: absolute;
           top: 50%;
@@ -8828,9 +8828,9 @@ function buildCrosshairSettingsOverlay() {
           <div style="background: ${borderEnabled ? borderRgba : 'transparent'};"></div>
         </div>
       `;
-    } else {
-      // Standard 3x3 crosshair preview
-      previewColor.innerHTML = `
+      } else {
+        // Standard 3x3 crosshair preview
+        previewColor.innerHTML = `
         <div style="
           position: absolute;
           top: 50%;
@@ -8857,31 +8857,31 @@ function buildCrosshairSettingsOverlay() {
           <div style="background: ${borderEnabled ? borderRgba : 'transparent'};"></div>
         </div>
       `;
+      }
     }
-  }
-  
-  // Initialize crosshair preview
-  updateCrosshairPreview(currentColor, tempBorderEnabled);
 
-  const previewName = document.createElement('div');
-  previewName.id = 'bm-current-color-name';
-  previewName.textContent = currentColor.name;
-  previewName.style.cssText = `
+    // Initialize crosshair preview
+    updateCrosshairPreview(currentColor, tempBorderEnabled);
+
+    const previewName = document.createElement('div');
+    previewName.id = 'bm-current-color-name';
+    previewName.textContent = currentColor.name;
+    previewName.style.cssText = `
     font-weight: 700; 
     font-size: 1.1em;
     color: var(--slate-100);
     letter-spacing: -0.025em;
   `;
 
-  currentColorPreview.appendChild(previewLabel);
-  currentColorPreview.appendChild(previewColor);
-  currentColorPreview.appendChild(previewName);
+    currentColorPreview.appendChild(previewLabel);
+    currentColorPreview.appendChild(previewColor);
+    currentColorPreview.appendChild(previewName);
 
-  // Color grid
-  const colorGrid = document.createElement('div');
-  const gridGap = isMobileMode ? '8px' : '16px';
-  const gridMargin = isMobileMode ? '16px' : '24px';
-  colorGrid.style.cssText = `
+    // Color grid
+    const colorGrid = document.createElement('div');
+    const gridGap = isMobileMode ? '8px' : '16px';
+    const gridMargin = isMobileMode ? '16px' : '24px';
+    colorGrid.style.cssText = `
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: ${gridGap};
@@ -8890,34 +8890,34 @@ function buildCrosshairSettingsOverlay() {
     z-index: 1;
   `;
 
-  // Create color option buttons
-  colorOptions.forEach((color) => {
-    const colorOption = document.createElement('button');
-    
-    // Enhanced selection logic for custom colors
-    let isSelected = false;
-    if (color.isCustom) {
-      // For custom color, check if saved color has isCustom flag OR is not a predefined color
-      isSelected = currentColor.isCustom || 
-        !colorOptions.filter(c => !c.isCustom).some(predefined => 
-          JSON.stringify(predefined.rgb) === JSON.stringify(currentColor.rgb)
-        );
-    } else {
-      // For predefined colors, check exact RGB match AND that current color is not custom
-      isSelected = JSON.stringify(color.rgb) === JSON.stringify(currentColor.rgb) && !currentColor.isCustom;
-    }
-    
-    // Special handling for custom color button
-    if (color.isCustom) {
-      // Use current color if custom is selected, otherwise use sophisticated gradient
-      const backgroundStyle = isSelected 
-        ? `rgba(${currentColor.rgb[0]}, ${currentColor.rgb[1]}, ${currentColor.rgb[2]}, 1)`
-        : `linear-gradient(135deg, 
+    // Create color option buttons
+    colorOptions.forEach((color) => {
+      const colorOption = document.createElement('button');
+
+      // Enhanced selection logic for custom colors
+      let isSelected = false;
+      if (color.isCustom) {
+        // For custom color, check if saved color has isCustom flag OR is not a predefined color
+        isSelected = currentColor.isCustom ||
+          !colorOptions.filter(c => !c.isCustom).some(predefined =>
+            JSON.stringify(predefined.rgb) === JSON.stringify(currentColor.rgb)
+          );
+      } else {
+        // For predefined colors, check exact RGB match AND that current color is not custom
+        isSelected = JSON.stringify(color.rgb) === JSON.stringify(currentColor.rgb) && !currentColor.isCustom;
+      }
+
+      // Special handling for custom color button
+      if (color.isCustom) {
+        // Use current color if custom is selected, otherwise use sophisticated gradient
+        const backgroundStyle = isSelected
+          ? `rgba(${currentColor.rgb[0]}, ${currentColor.rgb[1]}, ${currentColor.rgb[2]}, 1)`
+          : `linear-gradient(135deg, 
             #8B5CF6 0%, #A855F7 25%, #3B82F6 50%, #06B6D4 75%, #8B5CF6 100%)`;
-            
-      const buttonHeight = isMobileMode ? '85px' : '110px';
-      const buttonPadding = isMobileMode ? '8px' : '12px';
-      colorOption.style.cssText = `
+
+        const buttonHeight = isMobileMode ? '85px' : '110px';
+        const buttonPadding = isMobileMode ? '8px' : '12px';
+        colorOption.style.cssText = `
         background: ${backgroundStyle};
         border: 2px solid ${isSelected ? 'var(--slate-100)' : 'var(--slate-600)'};
         border-radius: 12px;
@@ -8935,10 +8935,10 @@ function buildCrosshairSettingsOverlay() {
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         ${!isSelected ? 'background-size: 200% 200%; animation: gradientShift 3s ease infinite;' : ''}
       `;
-    } else {
-      const buttonHeight = isMobileMode ? '85px' : '110px';
-      const buttonPadding = isMobileMode ? '8px' : '12px';
-      colorOption.style.cssText = `
+      } else {
+        const buttonHeight = isMobileMode ? '85px' : '110px';
+        const buttonPadding = isMobileMode ? '8px' : '12px';
+        colorOption.style.cssText = `
         background: rgba(${color.rgb[0]}, ${color.rgb[1]}, ${color.rgb[2]}, ${color.alpha / 255});
         border: 2px solid ${isSelected ? 'var(--slate-100)' : 'var(--slate-600)'};
         border-radius: 12px;
@@ -8955,12 +8955,12 @@ function buildCrosshairSettingsOverlay() {
         box-sizing: border-box;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
       `;
-    }
+      }
 
-    // Color name
-    const colorName = document.createElement('div');
-    colorName.textContent = color.name;
-    colorName.style.cssText = `
+      // Color name
+      const colorName = document.createElement('div');
+      colorName.textContent = color.name;
+      colorName.style.cssText = `
       font-size: 0.9em;
       font-weight: bold;
       color: white;
@@ -8968,33 +8968,33 @@ function buildCrosshairSettingsOverlay() {
       text-align: center;
     `;
 
-    // RGB values or custom inputs
-    if (color.isCustom) {
-      // Create RGB input container
-      const rgbInputs = document.createElement('div');
-      const containerWidth = isMobileMode ? '70%' : '80%';
-      const containerMaxWidth = isMobileMode ? '65px' : '80px';
-      const containerGap = isMobileMode ? '2px' : '3px';
-      rgbInputs.style.cssText = `
+      // RGB values or custom inputs
+      if (color.isCustom) {
+        // Create RGB input container
+        const rgbInputs = document.createElement('div');
+        const containerWidth = isMobileMode ? '70%' : '80%';
+        const containerMaxWidth = isMobileMode ? '65px' : '80px';
+        const containerGap = isMobileMode ? '2px' : '3px';
+        rgbInputs.style.cssText = `
         display: flex;
         flex-direction: column;
         gap: ${containerGap};
         width: ${containerWidth};
         max-width: ${containerMaxWidth};
       `;
-      
-      // Create individual RGB inputs
-      const rInput = document.createElement('input');
-      rInput.type = 'number';
-      rInput.min = '0';
-      rInput.max = '255';
-      rInput.value = isSelected ? currentColor.rgb[0] : '';
-      rInput.placeholder = 'R';
-      rInput.className = 'bm-custom-rgb-input';
-      const inputPadding = isMobileMode ? '2px 3px' : '3px 4px';
-      const inputHeight = isMobileMode ? '18px' : '22px';
-      const inputFontSize = isMobileMode ? '0.65em' : '0.7em';
-      rInput.style.cssText = `
+
+        // Create individual RGB inputs
+        const rInput = document.createElement('input');
+        rInput.type = 'number';
+        rInput.min = '0';
+        rInput.max = '255';
+        rInput.value = isSelected ? currentColor.rgb[0] : '';
+        rInput.placeholder = 'R';
+        rInput.className = 'bm-custom-rgb-input';
+        const inputPadding = isMobileMode ? '2px 3px' : '3px 4px';
+        const inputHeight = isMobileMode ? '18px' : '22px';
+        const inputFontSize = isMobileMode ? '0.65em' : '0.7em';
+        rInput.style.cssText = `
         width: 100%;
         padding: ${inputPadding};
         border: 1px solid var(--slate-500);
@@ -9009,118 +9009,84 @@ function buildCrosshairSettingsOverlay() {
         box-sizing: border-box;
         height: ${inputHeight};
       `;
-      rInput.onfocus = () => {
-        rInput.style.borderColor = 'var(--blue-500)';
-        rInput.style.boxShadow = '0 0 0 2px rgba(59, 130, 246, 0.2)';
-      };
-      rInput.onblur = () => {
-        rInput.style.borderColor = 'var(--slate-500)';
-        rInput.style.boxShadow = '';
-      };
-      
-      const gInput = document.createElement('input');
-      gInput.type = 'number';
-      gInput.min = '0';
-      gInput.max = '255';
-      gInput.value = isSelected ? currentColor.rgb[1] : '';
-      gInput.placeholder = 'G';
-      gInput.className = 'bm-custom-rgb-input';
-      gInput.style.cssText = rInput.style.cssText;
-      
-      const bInput = document.createElement('input');
-      bInput.type = 'number';
-      bInput.min = '0';
-      bInput.max = '255';
-      bInput.value = isSelected ? currentColor.rgb[2] : '';
-      bInput.placeholder = 'B';
-      bInput.className = 'bm-custom-rgb-input';
-      bInput.style.cssText = rInput.style.cssText;
-      
-      // Update function for RGB inputs
-      const updateCustomColor = () => {
-        const r = Math.max(0, Math.min(255, parseInt(rInput.value) || 0));
-        const g = Math.max(0, Math.min(255, parseInt(gInput.value) || 0));
-        const b = Math.max(0, Math.min(255, parseInt(bInput.value) || 0));
-        
-        tempColor = { name: 'Custom', rgb: [r, g, b], alpha: tempColor.alpha, isCustom: true };
-        
-        // Update the button background to show the custom color
-        colorOption.style.background = `rgba(${r}, ${g}, ${b}, 1)`;
-        
-        // Update preview
-        updateCrosshairPreview(tempColor, tempBorderEnabled);
-        document.getElementById('bm-current-color-name').textContent = `Custom RGB(${r}, ${g}, ${b})`;
-      };
-      
-      // Add event listeners
-      [rInput, gInput, bInput].forEach(input => {
-        input.addEventListener('input', updateCustomColor);
-        input.addEventListener('change', updateCustomColor);
-        
-        // Prevent clicks on inputs from bubbling to button
-        input.addEventListener('click', (e) => e.stopPropagation());
-        input.addEventListener('mousedown', (e) => e.stopPropagation());
-      });
-      
-      rgbInputs.appendChild(rInput);
-      rgbInputs.appendChild(gInput);
-      rgbInputs.appendChild(bInput);
-      
-      colorOption.appendChild(colorName);
-      colorOption.appendChild(rgbInputs);
-    } else {
-      // RGB values for predefined colors
-      const rgbText = document.createElement('div');
-      rgbText.textContent = `RGB(${color.rgb.join(', ')})`;
-      rgbText.style.cssText = `
+        rInput.onfocus = () => {
+          rInput.style.borderColor = 'var(--blue-500)';
+          rInput.style.boxShadow = '0 0 0 2px rgba(59, 130, 246, 0.2)';
+        };
+        rInput.onblur = () => {
+          rInput.style.borderColor = 'var(--slate-500)';
+          rInput.style.boxShadow = '';
+        };
+
+        const gInput = document.createElement('input');
+        gInput.type = 'number';
+        gInput.min = '0';
+        gInput.max = '255';
+        gInput.value = isSelected ? currentColor.rgb[1] : '';
+        gInput.placeholder = 'G';
+        gInput.className = 'bm-custom-rgb-input';
+        gInput.style.cssText = rInput.style.cssText;
+
+        const bInput = document.createElement('input');
+        bInput.type = 'number';
+        bInput.min = '0';
+        bInput.max = '255';
+        bInput.value = isSelected ? currentColor.rgb[2] : '';
+        bInput.placeholder = 'B';
+        bInput.className = 'bm-custom-rgb-input';
+        bInput.style.cssText = rInput.style.cssText;
+
+        // Update function for RGB inputs
+        const updateCustomColor = () => {
+          const r = Math.max(0, Math.min(255, parseInt(rInput.value) || 0));
+          const g = Math.max(0, Math.min(255, parseInt(gInput.value) || 0));
+          const b = Math.max(0, Math.min(255, parseInt(bInput.value) || 0));
+
+          tempColor = { name: 'Custom', rgb: [r, g, b], alpha: tempColor.alpha, isCustom: true };
+
+          // Update the button background to show the custom color
+          colorOption.style.background = `rgba(${r}, ${g}, ${b}, 1)`;
+
+          // Update preview
+          updateCrosshairPreview(tempColor, tempBorderEnabled);
+          document.getElementById('bm-current-color-name').textContent = `Custom RGB(${r}, ${g}, ${b})`;
+        };
+
+        // Add event listeners
+        [rInput, gInput, bInput].forEach(input => {
+          input.addEventListener('input', updateCustomColor);
+          input.addEventListener('change', updateCustomColor);
+
+          // Prevent clicks on inputs from bubbling to button
+          input.addEventListener('click', (e) => e.stopPropagation());
+          input.addEventListener('mousedown', (e) => e.stopPropagation());
+        });
+
+        rgbInputs.appendChild(rInput);
+        rgbInputs.appendChild(gInput);
+        rgbInputs.appendChild(bInput);
+
+        colorOption.appendChild(colorName);
+        colorOption.appendChild(rgbInputs);
+      } else {
+        // RGB values for predefined colors
+        const rgbText = document.createElement('div');
+        rgbText.textContent = `RGB(${color.rgb.join(', ')})`;
+        rgbText.style.cssText = `
         font-size: 0.7em;
         color: rgba(255, 255, 255, 0.8);
         text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
       `;
-      
-      colorOption.appendChild(colorName);
-      colorOption.appendChild(rgbText);
-    }
 
-    // Selection indicator
-    if (isSelected) {
-      const checkmark = document.createElement('div');
-      checkmark.textContent = '✓';
-      checkmark.style.cssText = `
-        position: absolute;
-        top: 5px;
-        right: 5px;
-        color: white;
-        font-weight: bold;
-        font-size: 1.2em;
-        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-      `;
-      colorOption.appendChild(checkmark);
-    }
-
-    // Click handler
-    colorOption.onclick = () => {
-      // For custom color, the inputs handle the color updates
-      if (!color.isCustom) {
-        // Update temporary color (don't save yet)
-        tempColor = { ...color };
-        
-        // Update crosshair preview with new color and current border setting
-        updateCrosshairPreview(tempColor, tempBorderEnabled);
-        document.getElementById('bm-current-color-name').textContent = color.name;
+        colorOption.appendChild(colorName);
+        colorOption.appendChild(rgbText);
       }
-      
-      // Update visual selection
-      colorGrid.querySelectorAll('button').forEach(btn => {
-        btn.style.border = '3px solid rgba(255, 255, 255, 0.3)';
-        const checkmark = btn.querySelector('div[style*="position: absolute"]');
-        if (checkmark) checkmark.remove();
-      });
-      
-      colorOption.style.border = '3px solid #fff';
-      const checkmark = document.createElement('div');
-      checkmark.textContent = '✓';
-      checkmark.style.cssText = `
+
+      // Selection indicator
+      if (isSelected) {
+        const checkmark = document.createElement('div');
+        checkmark.textContent = '✓';
+        checkmark.style.cssText = `
         position: absolute;
         top: 5px;
         right: 5px;
@@ -9129,35 +9095,69 @@ function buildCrosshairSettingsOverlay() {
         font-size: 1.2em;
         text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
       `;
-      colorOption.appendChild(checkmark);
-    };
+        colorOption.appendChild(checkmark);
+      }
 
-    // Hover effects (only for non-custom buttons to avoid interfering with inputs)
-    if (!color.isCustom) {
-      colorOption.addEventListener('mouseenter', () => {
-        if (!isSelected) {
-          colorOption.style.border = '3px solid rgba(255, 255, 255, 0.7)';
-          colorOption.style.transform = 'scale(1.05)';
+      // Click handler
+      colorOption.onclick = () => {
+        // For custom color, the inputs handle the color updates
+        if (!color.isCustom) {
+          // Update temporary color (don't save yet)
+          tempColor = { ...color };
+
+          // Update crosshair preview with new color and current border setting
+          updateCrosshairPreview(tempColor, tempBorderEnabled);
+          document.getElementById('bm-current-color-name').textContent = color.name;
         }
-      });
 
-      colorOption.addEventListener('mouseleave', () => {
-        if (!isSelected) {
-          colorOption.style.border = '3px solid rgba(255, 255, 255, 0.3)';
-          colorOption.style.transform = 'scale(1)';
-        }
-      });
-    }
+        // Update visual selection
+        colorGrid.querySelectorAll('button').forEach(btn => {
+          btn.style.border = '3px solid rgba(255, 255, 255, 0.3)';
+          const checkmark = btn.querySelector('div[style*="position: absolute"]');
+          if (checkmark) checkmark.remove();
+        });
 
-    colorGrid.appendChild(colorOption);
-  });
+        colorOption.style.border = '3px solid #fff';
+        const checkmark = document.createElement('div');
+        checkmark.textContent = '✓';
+        checkmark.style.cssText = `
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        color: white;
+        font-weight: bold;
+        font-size: 1.2em;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+      `;
+        colorOption.appendChild(checkmark);
+      };
 
-  // Alpha slider section
-  const alphaSection = document.createElement('div');
-  const sectionPadding = isMobileMode ? '12px' : '18px';
-  const sectionMargin = isMobileMode ? '14px' : '20px';
-  const sectionBorderRadius = isMobileMode ? '8px' : '12px';
-  alphaSection.style.cssText = `
+      // Hover effects (only for non-custom buttons to avoid interfering with inputs)
+      if (!color.isCustom) {
+        colorOption.addEventListener('mouseenter', () => {
+          if (!isSelected) {
+            colorOption.style.border = '3px solid rgba(255, 255, 255, 0.7)';
+            colorOption.style.transform = 'scale(1.05)';
+          }
+        });
+
+        colorOption.addEventListener('mouseleave', () => {
+          if (!isSelected) {
+            colorOption.style.border = '3px solid rgba(255, 255, 255, 0.3)';
+            colorOption.style.transform = 'scale(1)';
+          }
+        });
+      }
+
+      colorGrid.appendChild(colorOption);
+    });
+
+    // Alpha slider section
+    const alphaSection = document.createElement('div');
+    const sectionPadding = isMobileMode ? '12px' : '18px';
+    const sectionMargin = isMobileMode ? '14px' : '20px';
+    const sectionBorderRadius = isMobileMode ? '8px' : '12px';
+    alphaSection.style.cssText = `
     background: linear-gradient(135deg, var(--slate-800), var(--slate-750));
     border: 1px solid var(--slate-700);
     border-radius: ${sectionBorderRadius};
@@ -9167,9 +9167,9 @@ function buildCrosshairSettingsOverlay() {
     z-index: 1;
   `;
 
-  const alphaLabel = document.createElement('div');
-  alphaLabel.textContent = 'Crosshair Transparency:';
-  alphaLabel.style.cssText = `
+    const alphaLabel = document.createElement('div');
+    alphaLabel.textContent = 'Crosshair Transparency:';
+    alphaLabel.style.cssText = `
     font-size: 1em; 
     margin-bottom: 12px; 
     color: var(--slate-200);
@@ -9177,19 +9177,19 @@ function buildCrosshairSettingsOverlay() {
     letter-spacing: -0.01em;
   `;
 
-  const alphaSlider = document.createElement('input');
-  alphaSlider.type = 'range';
-  alphaSlider.min = '50';
-  alphaSlider.max = '255';
-  alphaSlider.value = currentColor.alpha.toString();
-  alphaSlider.style.cssText = `
+    const alphaSlider = document.createElement('input');
+    alphaSlider.type = 'range';
+    alphaSlider.min = '50';
+    alphaSlider.max = '255';
+    alphaSlider.value = currentColor.alpha.toString();
+    alphaSlider.style.cssText = `
     width: 100%;
     margin: 10px 0;
   `;
 
-  const alphaValue = document.createElement('div');
-  alphaValue.textContent = `${Math.round((currentColor.alpha / 255) * 100)}%`;
-  alphaValue.style.cssText = `
+    const alphaValue = document.createElement('div');
+    alphaValue.textContent = `${Math.round((currentColor.alpha / 255) * 100)}%`;
+    alphaValue.style.cssText = `
     text-align: center; 
     font-weight: 700; 
     font-size: 1.1em;
@@ -9198,24 +9198,24 @@ function buildCrosshairSettingsOverlay() {
     letter-spacing: -0.025em;
   `;
 
-  alphaSlider.oninput = () => {
-    const alpha = parseInt(alphaSlider.value);
-    alphaValue.textContent = `${Math.round((alpha / 255) * 100)}%`;
-    
-    // Update temporary color with new alpha
-    tempColor.alpha = alpha;
-    
-    // Update crosshair preview with new alpha
-    updateCrosshairPreview(tempColor, tempBorderEnabled);
-  };
+    alphaSlider.oninput = () => {
+      const alpha = parseInt(alphaSlider.value);
+      alphaValue.textContent = `${Math.round((alpha / 255) * 100)}%`;
 
-  alphaSection.appendChild(alphaLabel);
-  alphaSection.appendChild(alphaSlider);
-  alphaSection.appendChild(alphaValue);
+      // Update temporary color with new alpha
+      tempColor.alpha = alpha;
 
-  // Border options section
-  const borderSection = document.createElement('div');
-  borderSection.style.cssText = `
+      // Update crosshair preview with new alpha
+      updateCrosshairPreview(tempColor, tempBorderEnabled);
+    };
+
+    alphaSection.appendChild(alphaLabel);
+    alphaSection.appendChild(alphaSlider);
+    alphaSection.appendChild(alphaValue);
+
+    // Border options section
+    const borderSection = document.createElement('div');
+    borderSection.style.cssText = `
     background: linear-gradient(135deg, var(--slate-800), var(--slate-750));
     border: 1px solid var(--slate-700);
     border-radius: ${sectionBorderRadius};
@@ -9225,9 +9225,9 @@ function buildCrosshairSettingsOverlay() {
     z-index: 1;
   `;
 
-  const borderLabel = document.createElement('div');
-  borderLabel.textContent = 'Corner Borders:';
-  borderLabel.style.cssText = `
+    const borderLabel = document.createElement('div');
+    borderLabel.textContent = 'Corner Borders:';
+    borderLabel.style.cssText = `
     font-size: 1em; 
     margin-bottom: 12px; 
     color: var(--slate-200);
@@ -9235,9 +9235,9 @@ function buildCrosshairSettingsOverlay() {
     letter-spacing: -0.01em;
   `;
 
-  const borderDescription = document.createElement('div');
-  borderDescription.textContent = 'Add subtle borders around corner pixels of the crosshair';
-  borderDescription.style.cssText = `
+    const borderDescription = document.createElement('div');
+    borderDescription.textContent = 'Add subtle borders around corner pixels of the crosshair';
+    borderDescription.style.cssText = `
     font-size: 0.9em; 
     margin-bottom: 16px; 
     color: var(--slate-300);
@@ -9245,8 +9245,8 @@ function buildCrosshairSettingsOverlay() {
     letter-spacing: -0.005em;
   `;
 
-  const borderToggle = document.createElement('label');
-  borderToggle.style.cssText = `
+    const borderToggle = document.createElement('label');
+    borderToggle.style.cssText = `
     display: flex;
     align-items: center;
     gap: 10px;
@@ -9254,47 +9254,47 @@ function buildCrosshairSettingsOverlay() {
     user-select: none;
   `;
 
-  const borderCheckbox = document.createElement('input');
-  borderCheckbox.type = 'checkbox';
-  borderCheckbox.checked = tempBorderEnabled;
-  borderCheckbox.style.cssText = `
+    const borderCheckbox = document.createElement('input');
+    borderCheckbox.type = 'checkbox';
+    borderCheckbox.checked = tempBorderEnabled;
+    borderCheckbox.style.cssText = `
     width: 16px;
     height: 16px;
     cursor: pointer;
     border-radius: 4px;
   `;
 
-  const borderToggleText = document.createElement('span');
-  borderToggleText.textContent = tempBorderEnabled ? 'Enabled' : 'Disabled';
-  borderToggleText.style.cssText = `
+    const borderToggleText = document.createElement('span');
+    borderToggleText.textContent = tempBorderEnabled ? 'Enabled' : 'Disabled';
+    borderToggleText.style.cssText = `
     color: var(--slate-100); 
     font-weight: 700;
     letter-spacing: -0.01em;
   `;
 
-  borderCheckbox.onchange = () => {
-    tempBorderEnabled = borderCheckbox.checked;
-    
-    // Update crosshair preview to show/hide borders
-    updateCrosshairPreview(tempColor, tempBorderEnabled);
-    // Visual feedback like the Mini Progress Tracker (text color only)
-    borderToggleText.style.background = '';
-    borderToggleText.style.border = '';
-    borderToggleText.style.padding = '';
-    borderToggleText.style.borderRadius = '';
-    borderToggleText.style.color = tempBorderEnabled ? '#4caf50' : '#f44336';
-    borderToggleText.textContent = tempBorderEnabled ? 'Enabled' : 'Disabled';
-  };
+    borderCheckbox.onchange = () => {
+      tempBorderEnabled = borderCheckbox.checked;
 
-  borderToggle.appendChild(borderCheckbox);
-  borderToggle.appendChild(borderToggleText);
-  borderSection.appendChild(borderLabel);
-  borderSection.appendChild(borderDescription);
-  borderSection.appendChild(borderToggle);
+      // Update crosshair preview to show/hide borders
+      updateCrosshairPreview(tempColor, tempBorderEnabled);
+      // Visual feedback like the Mini Progress Tracker (text color only)
+      borderToggleText.style.background = '';
+      borderToggleText.style.border = '';
+      borderToggleText.style.padding = '';
+      borderToggleText.style.borderRadius = '';
+      borderToggleText.style.color = tempBorderEnabled ? '#4caf50' : '#f44336';
+      borderToggleText.textContent = tempBorderEnabled ? 'Enabled' : 'Disabled';
+    };
 
-  // Crosshair Size section
-  const sizeSection = document.createElement('div');
-  sizeSection.style.cssText = `
+    borderToggle.appendChild(borderCheckbox);
+    borderToggle.appendChild(borderToggleText);
+    borderSection.appendChild(borderLabel);
+    borderSection.appendChild(borderDescription);
+    borderSection.appendChild(borderToggle);
+
+    // Crosshair Size section
+    const sizeSection = document.createElement('div');
+    sizeSection.style.cssText = `
     background: linear-gradient(135deg, var(--slate-800), var(--slate-750));
     border: 1px solid var(--slate-700);
     border-radius: ${sectionBorderRadius};
@@ -9304,9 +9304,9 @@ function buildCrosshairSettingsOverlay() {
     z-index: 1;
   `;
 
-  const sizeLabel = document.createElement('div');
-  sizeLabel.textContent = 'Crosshair Size:';
-  sizeLabel.style.cssText = `
+    const sizeLabel = document.createElement('div');
+    sizeLabel.textContent = 'Crosshair Size:';
+    sizeLabel.style.cssText = `
     font-size: 1em; 
     margin-bottom: 12px; 
     color: var(--slate-200);
@@ -9314,9 +9314,9 @@ function buildCrosshairSettingsOverlay() {
     letter-spacing: -0.01em;
   `;
 
-  const sizeDescription = document.createElement('div');
-  sizeDescription.textContent = 'Make crosshair 5x larger, extending beyond pixel boundaries';
-  sizeDescription.style.cssText = `
+    const sizeDescription = document.createElement('div');
+    sizeDescription.textContent = 'Make crosshair 5x larger, extending beyond pixel boundaries';
+    sizeDescription.style.cssText = `
     font-size: 0.9em; 
     margin-bottom: 16px; 
     color: var(--slate-300);
@@ -9324,8 +9324,8 @@ function buildCrosshairSettingsOverlay() {
     letter-spacing: -0.005em;
   `;
 
-  const sizeToggle = document.createElement('label');
-  sizeToggle.style.cssText = `
+    const sizeToggle = document.createElement('label');
+    sizeToggle.style.cssText = `
     display: flex;
     align-items: center;
     gap: 12px;
@@ -9334,55 +9334,55 @@ function buildCrosshairSettingsOverlay() {
     user-select: none;
   `;
 
-  // Get current enhanced size setting (single source of truth)
-  let tempEnhancedSize = getEnhancedSizeEnabled();
+    // Get current enhanced size setting (single source of truth)
+    let tempEnhancedSize = getEnhancedSizeEnabled();
 
-  const sizeCheckbox = document.createElement('input');
-  sizeCheckbox.type = 'checkbox';
-  sizeCheckbox.checked = tempEnhancedSize;
-  sizeCheckbox.style.cssText = `
+    const sizeCheckbox = document.createElement('input');
+    sizeCheckbox.type = 'checkbox';
+    sizeCheckbox.checked = tempEnhancedSize;
+    sizeCheckbox.style.cssText = `
     width: 16px;
     height: 16px;
     cursor: pointer;
     border-radius: 4px;
   `;
 
-  const sizeToggleText = document.createElement('span');
-  sizeToggleText.textContent = tempEnhancedSize ? 'Enabled' : 'Disabled';
-  sizeToggleText.style.cssText = `
+    const sizeToggleText = document.createElement('span');
+    sizeToggleText.textContent = tempEnhancedSize ? 'Enabled' : 'Disabled';
+    sizeToggleText.style.cssText = `
     font-size: 0.95em;
     color: var(--slate-100);
     font-weight: 700;
     letter-spacing: -0.01em;
   `;
 
-  sizeCheckbox.onchange = () => {
-    tempEnhancedSize = sizeCheckbox.checked;
-    updateCrosshairPreview(tempColor, tempBorderEnabled, tempEnhancedSize);
-    // Visual feedback like the Mini Progress Tracker (only checkbox toggles)
-    sizeToggleText.style.background = '';
-    sizeToggleText.style.border = '';
-    sizeToggleText.style.padding = '';
-    sizeToggleText.style.borderRadius = '';
-    sizeToggleText.style.color = tempEnhancedSize ? '#4caf50' : '#f44336';
-    sizeToggleText.textContent = tempEnhancedSize ? 'Enabled' : 'Disabled';
-  };
+    sizeCheckbox.onchange = () => {
+      tempEnhancedSize = sizeCheckbox.checked;
+      updateCrosshairPreview(tempColor, tempBorderEnabled, tempEnhancedSize);
+      // Visual feedback like the Mini Progress Tracker (only checkbox toggles)
+      sizeToggleText.style.background = '';
+      sizeToggleText.style.border = '';
+      sizeToggleText.style.padding = '';
+      sizeToggleText.style.borderRadius = '';
+      sizeToggleText.style.color = tempEnhancedSize ? '#4caf50' : '#f44336';
+      sizeToggleText.textContent = tempEnhancedSize ? 'Enabled' : 'Disabled';
+    };
 
-  // Only a BOX click altera o estado – clique no texto não alterna
-  sizeToggle.onclick = (e) => {};
+    // Only a BOX click altera o estado – clique no texto não alterna
+    sizeToggle.onclick = (e) => { };
 
-  sizeToggle.appendChild(sizeCheckbox);
-  sizeToggle.appendChild(sizeToggleText);
-  // Initialize visual state
-  borderCheckbox.onchange();
-  sizeCheckbox.onchange();
-  sizeSection.appendChild(sizeLabel);
-  sizeSection.appendChild(sizeDescription);
-  sizeSection.appendChild(sizeToggle);
+    sizeToggle.appendChild(sizeCheckbox);
+    sizeToggle.appendChild(sizeToggleText);
+    // Initialize visual state
+    borderCheckbox.onchange();
+    sizeCheckbox.onchange();
+    sizeSection.appendChild(sizeLabel);
+    sizeSection.appendChild(sizeDescription);
+    sizeSection.appendChild(sizeToggle);
 
-  // Crosshair Radius section (only show when enhanced size is enabled)
-  const radiusSection = document.createElement('div');
-  radiusSection.style.cssText = `
+    // Crosshair Radius section (only show when enhanced size is enabled)
+    const radiusSection = document.createElement('div');
+    radiusSection.style.cssText = `
     background: linear-gradient(135deg, var(--slate-800), var(--slate-750));
     border: 1px solid var(--slate-700);
     border-radius: ${sectionBorderRadius};
@@ -9393,9 +9393,9 @@ function buildCrosshairSettingsOverlay() {
     transition: opacity 0.3s ease, transform 0.3s ease;
   `;
 
-  const radiusLabel = document.createElement('div');
-  radiusLabel.textContent = 'Crosshair Radius:';
-  radiusLabel.style.cssText = `
+    const radiusLabel = document.createElement('div');
+    radiusLabel.textContent = 'Crosshair Radius:';
+    radiusLabel.style.cssText = `
     font-size: 1em; 
     margin-bottom: 12px; 
     color: var(--slate-200);
@@ -9403,9 +9403,9 @@ function buildCrosshairSettingsOverlay() {
     letter-spacing: -0.01em;
   `;
 
-  const radiusDescription = document.createElement('div');
-  radiusDescription.textContent = 'Control how far the crosshair extends from the center pixel';
-  radiusDescription.style.cssText = `
+    const radiusDescription = document.createElement('div');
+    radiusDescription.textContent = 'Control how far the crosshair extends from the center pixel';
+    radiusDescription.style.cssText = `
     font-size: 0.9em; 
     margin-bottom: 16px; 
     color: var(--slate-300);
@@ -9413,24 +9413,24 @@ function buildCrosshairSettingsOverlay() {
     letter-spacing: -0.005em;
   `;
 
-  // Get current radius setting
-  let tempRadius = getCrosshairRadius();
+    // Get current radius setting
+    let tempRadius = getCrosshairRadius();
 
-  const radiusSliderContainer = document.createElement('div');
-  radiusSliderContainer.style.cssText = `
+    const radiusSliderContainer = document.createElement('div');
+    radiusSliderContainer.style.cssText = `
     display: flex;
     align-items: center;
     gap: 16px;
     margin-bottom: 12px;
   `;
 
-  const radiusSlider = document.createElement('input');
-  radiusSlider.type = 'range';
-  radiusSlider.min = '12';
-  radiusSlider.max = '32';
-  radiusSlider.step = '1';
-  radiusSlider.value = tempRadius;
-  radiusSlider.style.cssText = `
+    const radiusSlider = document.createElement('input');
+    radiusSlider.type = 'range';
+    radiusSlider.min = '12';
+    radiusSlider.max = '32';
+    radiusSlider.step = '1';
+    radiusSlider.value = tempRadius;
+    radiusSlider.style.cssText = `
     flex: 1;
     height: 6px;
     background: linear-gradient(90deg, var(--slate-600), var(--slate-500));
@@ -9441,9 +9441,9 @@ function buildCrosshairSettingsOverlay() {
     -moz-appearance: none;
   `;
 
-  // Style the slider thumb
-  const radiusSliderStyle = document.createElement('style');
-  radiusSliderStyle.textContent = `
+    // Style the slider thumb
+    const radiusSliderStyle = document.createElement('style');
+    radiusSliderStyle.textContent = `
     input[type="range"]::-webkit-slider-thumb {
       -webkit-appearance: none;
       width: 18px;
@@ -9464,11 +9464,11 @@ function buildCrosshairSettingsOverlay() {
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
     }
   `;
-  document.head.appendChild(radiusSliderStyle);
+    document.head.appendChild(radiusSliderStyle);
 
-  const radiusValue = document.createElement('div');
-  radiusValue.textContent = tempRadius;
-  radiusValue.style.cssText = `
+    const radiusValue = document.createElement('div');
+    radiusValue.textContent = tempRadius;
+    radiusValue.style.cssText = `
     font-size: 1em;
     font-weight: 600;
     color: var(--slate-100);
@@ -9480,44 +9480,44 @@ function buildCrosshairSettingsOverlay() {
     border: 1px solid var(--slate-600);
   `;
 
-  radiusSlider.oninput = () => {
-    tempRadius = parseInt(radiusSlider.value);
-    radiusValue.textContent = tempRadius;
-    updateCrosshairPreview(tempColor, tempBorderEnabled, tempEnhancedSize);
-  };
+    radiusSlider.oninput = () => {
+      tempRadius = parseInt(radiusSlider.value);
+      radiusValue.textContent = tempRadius;
+      updateCrosshairPreview(tempColor, tempBorderEnabled, tempEnhancedSize);
+    };
 
-  // Update radius section visibility based on enhanced size
-  const updateRadiusVisibility = () => {
-    if (tempEnhancedSize) {
-      radiusSection.style.opacity = '1';
-      radiusSection.style.transform = 'translateY(0)';
-      radiusSection.style.pointerEvents = 'auto';
-    } else {
-      radiusSection.style.opacity = '0.5';
-      radiusSection.style.transform = 'translateY(-10px)';
-      radiusSection.style.pointerEvents = 'none';
-    }
-  };
+    // Update radius section visibility based on enhanced size
+    const updateRadiusVisibility = () => {
+      if (tempEnhancedSize) {
+        radiusSection.style.opacity = '1';
+        radiusSection.style.transform = 'translateY(0)';
+        radiusSection.style.pointerEvents = 'auto';
+      } else {
+        radiusSection.style.opacity = '0.5';
+        radiusSection.style.transform = 'translateY(-10px)';
+        radiusSection.style.pointerEvents = 'none';
+      }
+    };
 
-  // Override the enhanced size checkbox onchange to also update radius visibility
-  const originalSizeOnChange = sizeCheckbox.onchange;
-  sizeCheckbox.onchange = () => {
-    originalSizeOnChange();
+    // Override the enhanced size checkbox onchange to also update radius visibility
+    const originalSizeOnChange = sizeCheckbox.onchange;
+    sizeCheckbox.onchange = () => {
+      originalSizeOnChange();
+      updateRadiusVisibility();
+    };
+
+    radiusSliderContainer.appendChild(radiusSlider);
+    radiusSliderContainer.appendChild(radiusValue);
+    radiusSection.appendChild(radiusLabel);
+    radiusSection.appendChild(radiusDescription);
+    radiusSection.appendChild(radiusSliderContainer);
+
+    // Initialize radius visibility
     updateRadiusVisibility();
-  };
 
-  radiusSliderContainer.appendChild(radiusSlider);
-  radiusSliderContainer.appendChild(radiusValue);
-  radiusSection.appendChild(radiusLabel);
-  radiusSection.appendChild(radiusDescription);
-  radiusSection.appendChild(radiusSliderContainer);
-
-  // Initialize radius visibility
-  updateRadiusVisibility();
-
-  // Mini tracker section
-  const trackerSection = document.createElement('div');
-  trackerSection.style.cssText = `
+    // Mini tracker section
+    const trackerSection = document.createElement('div');
+    trackerSection.style.cssText = `
     background: linear-gradient(135deg, var(--slate-800), var(--slate-750));
     border: 1px solid var(--slate-700);
     border-radius: ${sectionBorderRadius};
@@ -9527,9 +9527,9 @@ function buildCrosshairSettingsOverlay() {
     z-index: 1;
   `;
 
-  const trackerLabel = document.createElement('div');
-  trackerLabel.textContent = 'Mini Progress Tracker:';
-  trackerLabel.style.cssText = `
+    const trackerLabel = document.createElement('div');
+    trackerLabel.textContent = 'Mini Progress Tracker:';
+    trackerLabel.style.cssText = `
     font-size: 1em; 
     margin-bottom: 12px; 
     color: var(--slate-200);
@@ -9537,9 +9537,9 @@ function buildCrosshairSettingsOverlay() {
     letter-spacing: -0.01em;
   `;
 
-  const trackerDescription = document.createElement('div');
-  trackerDescription.textContent = 'Show a compact progress tracker below the Color Filter button.';
-  trackerDescription.style.cssText = `
+    const trackerDescription = document.createElement('div');
+    trackerDescription.textContent = 'Show a compact progress tracker below the Color Filter button.';
+    trackerDescription.style.cssText = `
     font-size: 0.9em; 
     color: var(--slate-300); 
     margin-bottom: 16px; 
@@ -9547,58 +9547,58 @@ function buildCrosshairSettingsOverlay() {
     letter-spacing: -0.005em;
   `;
 
-  const trackerToggle = document.createElement('div');
-  trackerToggle.style.cssText = `
+    const trackerToggle = document.createElement('div');
+    trackerToggle.style.cssText = `
     display: flex;
     align-items: center;
     gap: 8px;
   `;
 
-  const trackerCheckbox = document.createElement('input');
-  trackerCheckbox.type = 'checkbox';
-  trackerCheckbox.checked = tempMiniTrackerEnabled;
-  trackerCheckbox.style.cssText = `
+    const trackerCheckbox = document.createElement('input');
+    trackerCheckbox.type = 'checkbox';
+    trackerCheckbox.checked = tempMiniTrackerEnabled;
+    trackerCheckbox.style.cssText = `
     width: 16px;
     height: 16px;
     cursor: pointer;
   `;
 
-  const trackerToggleText = document.createElement('span');
-  trackerToggleText.textContent = tempMiniTrackerEnabled ? 'Enabled' : 'Disabled';
-  trackerToggleText.style.cssText = `
+    const trackerToggleText = document.createElement('span');
+    trackerToggleText.textContent = tempMiniTrackerEnabled ? 'Enabled' : 'Disabled';
+    trackerToggleText.style.cssText = `
     color: ${tempMiniTrackerEnabled ? '#4caf50' : '#f44336'};
     font-weight: bold;
     cursor: pointer;
   `;
 
-  // Function to update tracker state (visual only, no saving)
-  const updateTrackerState = () => {
-    tempMiniTrackerEnabled = trackerCheckbox.checked;
-    trackerToggleText.textContent = tempMiniTrackerEnabled ? 'Enabled' : 'Disabled';
-    trackerToggleText.style.color = tempMiniTrackerEnabled ? '#4caf50' : '#f44336';
-  };
+    // Function to update tracker state (visual only, no saving)
+    const updateTrackerState = () => {
+      tempMiniTrackerEnabled = trackerCheckbox.checked;
+      trackerToggleText.textContent = tempMiniTrackerEnabled ? 'Enabled' : 'Disabled';
+      trackerToggleText.style.color = tempMiniTrackerEnabled ? '#4caf50' : '#f44336';
+    };
 
-  trackerCheckbox.addEventListener('change', updateTrackerState);
+    trackerCheckbox.addEventListener('change', updateTrackerState);
 
-  // Only make the TEXT clickable, not the whole container
-  trackerToggleText.onclick = (e) => {
-    e.stopPropagation(); // Prevent event bubbling
-    trackerCheckbox.checked = !trackerCheckbox.checked;
-    updateTrackerState();
-  };
+    // Only make the TEXT clickable, not the whole container
+    trackerToggleText.onclick = (e) => {
+      e.stopPropagation(); // Prevent event bubbling
+      trackerCheckbox.checked = !trackerCheckbox.checked;
+      updateTrackerState();
+    };
 
-  // Remove cursor pointer from the container since only text should be clickable
-  trackerToggle.style.cursor = 'default';
+    // Remove cursor pointer from the container since only text should be clickable
+    trackerToggle.style.cursor = 'default';
 
-  trackerToggle.appendChild(trackerCheckbox);
-  trackerToggle.appendChild(trackerToggleText);
-  trackerSection.appendChild(trackerLabel);
-  trackerSection.appendChild(trackerDescription);
-  trackerSection.appendChild(trackerToggle);
+    trackerToggle.appendChild(trackerCheckbox);
+    trackerToggle.appendChild(trackerToggleText);
+    trackerSection.appendChild(trackerLabel);
+    trackerSection.appendChild(trackerDescription);
+    trackerSection.appendChild(trackerToggle);
 
-  // Mobile Mode Section
-  const mobileSection = document.createElement('div');
-  mobileSection.style.cssText = `
+    // Mobile Mode Section
+    const mobileSection = document.createElement('div');
+    mobileSection.style.cssText = `
     background: linear-gradient(135deg, var(--slate-800), var(--slate-750));
     border: 1px solid var(--slate-700);
     border-radius: ${sectionBorderRadius};
@@ -9608,9 +9608,9 @@ function buildCrosshairSettingsOverlay() {
     z-index: 1;
   `;
 
-  const mobileLabel = document.createElement('div');
-  mobileLabel.textContent = '📱 Mobile Mode:';
-  mobileLabel.style.cssText = `
+    const mobileLabel = document.createElement('div');
+    mobileLabel.textContent = '📱 Mobile Mode:';
+    mobileLabel.style.cssText = `
     font-size: 1em; 
     margin-bottom: 12px; 
     color: var(--slate-200);
@@ -9618,9 +9618,9 @@ function buildCrosshairSettingsOverlay() {
     letter-spacing: -0.01em;
   `;
 
-  const mobileDescription = document.createElement('div');
-  mobileDescription.textContent = 'Enable ultra-compact UI for mobile devices. Makes Color Filter extremely compact for better mobile experience.';
-  mobileDescription.style.cssText = `
+    const mobileDescription = document.createElement('div');
+    mobileDescription.textContent = 'Enable ultra-compact UI for mobile devices. Makes Color Filter extremely compact for better mobile experience.';
+    mobileDescription.style.cssText = `
     font-size: 0.9em; 
     color: var(--slate-300); 
     margin-bottom: 16px; 
@@ -9628,82 +9628,82 @@ function buildCrosshairSettingsOverlay() {
     letter-spacing: -0.005em;
   `;
 
-  const mobileToggle = document.createElement('div');
-  mobileToggle.style.cssText = `
+    const mobileToggle = document.createElement('div');
+    mobileToggle.style.cssText = `
     display: flex;
     align-items: center;
     gap: 8px;
   `;
 
-  // Use global mobile mode setting
+    // Use global mobile mode setting
 
-  const mobileCheckbox = document.createElement('input');
-  mobileCheckbox.type = 'checkbox';
-  const currentMobileMode = getMobileMode(); // Get fresh value from storage
-  mobileCheckbox.checked = currentMobileMode;
-  tempMobileMode = currentMobileMode; // Synchronize temp variable
-  mobileCheckbox.style.cssText = `
+    const mobileCheckbox = document.createElement('input');
+    mobileCheckbox.type = 'checkbox';
+    const currentMobileMode = getMobileMode(); // Get fresh value from storage
+    mobileCheckbox.checked = currentMobileMode;
+    tempMobileMode = currentMobileMode; // Synchronize temp variable
+    mobileCheckbox.style.cssText = `
     width: 16px;
     height: 16px;
     cursor: pointer;
   `;
 
-  const mobileToggleText = document.createElement('span');
-  mobileToggleText.textContent = currentMobileMode ? 'Enabled' : 'Disabled';
-  mobileToggleText.style.cssText = `
+    const mobileToggleText = document.createElement('span');
+    mobileToggleText.textContent = currentMobileMode ? 'Enabled' : 'Disabled';
+    mobileToggleText.style.cssText = `
     color: ${currentMobileMode ? '#4caf50' : '#f44336'};
     font-weight: bold;
     cursor: pointer;
   `;
 
-  // Function to update mobile mode state (visual only, no saving)
-  const updateMobileState = () => {
-    tempMobileMode = mobileCheckbox.checked;
-    mobileToggleText.textContent = tempMobileMode ? 'Enabled' : 'Disabled';
-    mobileToggleText.style.color = tempMobileMode ? '#4caf50' : '#f44336';
-  };
+    // Function to update mobile mode state (visual only, no saving)
+    const updateMobileState = () => {
+      tempMobileMode = mobileCheckbox.checked;
+      mobileToggleText.textContent = tempMobileMode ? 'Enabled' : 'Disabled';
+      mobileToggleText.style.color = tempMobileMode ? '#4caf50' : '#f44336';
+    };
 
-  mobileCheckbox.addEventListener('change', updateMobileState);
+    mobileCheckbox.addEventListener('change', updateMobileState);
 
-  // Only make the TEXT clickable, not the whole container
-  mobileToggleText.onclick = (e) => {
-    e.stopPropagation(); // Prevent event bubbling
-    mobileCheckbox.checked = !mobileCheckbox.checked;
-    updateMobileState();
-  };
+    // Only make the TEXT clickable, not the whole container
+    mobileToggleText.onclick = (e) => {
+      e.stopPropagation(); // Prevent event bubbling
+      mobileCheckbox.checked = !mobileCheckbox.checked;
+      updateMobileState();
+    };
 
-  // Remove cursor pointer from the container since only text should be clickable
-  mobileToggle.style.cursor = 'default';
+    // Remove cursor pointer from the container since only text should be clickable
+    mobileToggle.style.cursor = 'default';
 
-  mobileToggle.appendChild(mobileCheckbox);
-  mobileToggle.appendChild(mobileToggleText);
-  // Visual feedback for enabled/disabled
-  const applyMobileVisual = () => {
-    mobileToggleText.style.background = '';
-    mobileToggleText.style.border = '';
-    mobileToggleText.style.padding = '';
-    mobileToggleText.style.borderRadius = '';
-    mobileToggleText.style.color = tempMobileMode ? '#4caf50' : '#f44336';
-    mobileToggleText.textContent = tempMobileMode ? 'Enabled' : 'Disabled';
-  };
-  applyMobileVisual();
-  const oldUpdateMobile = updateMobileState;
-  const updateMobileStateWrapped = () => { oldUpdateMobile(); applyMobileVisual(); };
-  mobileCheckbox.removeEventListener('change', updateMobileState);
-  mobileCheckbox.addEventListener('change', updateMobileStateWrapped);
-  // Make TEXT clickable too
-  mobileToggleText.onclick = (e) => {
-    e.stopPropagation();
-    mobileCheckbox.checked = !mobileCheckbox.checked;
-    updateMobileStateWrapped();
-  };
-  mobileSection.appendChild(mobileLabel);
-  mobileSection.appendChild(mobileDescription);
-  mobileSection.appendChild(mobileToggle);
+    mobileToggle.appendChild(mobileCheckbox);
+    mobileToggle.appendChild(mobileToggleText);
+    // Visual feedback for enabled/disabled
+    const applyMobileVisual = () => {
+      mobileToggleText.style.background = '';
+      mobileToggleText.style.border = '';
+      mobileToggleText.style.padding = '';
+      mobileToggleText.style.borderRadius = '';
+      mobileToggleText.style.color = tempMobileMode ? '#4caf50' : '#f44336';
+      mobileToggleText.textContent = tempMobileMode ? 'Enabled' : 'Disabled';
+    };
+    applyMobileVisual();
+    const oldUpdateMobile = updateMobileState;
+    const updateMobileStateWrapped = () => { oldUpdateMobile(); applyMobileVisual(); };
+    mobileCheckbox.removeEventListener('change', updateMobileState);
+    mobileCheckbox.addEventListener('change', updateMobileStateWrapped);
+    // Make TEXT clickable too
+    mobileToggleText.onclick = (e) => {
+      e.stopPropagation();
+      mobileCheckbox.checked = !mobileCheckbox.checked;
+      updateMobileStateWrapped();
+    };
+    mobileSection.appendChild(mobileLabel);
+    mobileSection.appendChild(mobileDescription);
+    mobileSection.appendChild(mobileToggle);
 
-  // Collapse Mini Template Section
-  const collapseSection = document.createElement('div');
-  collapseSection.style.cssText = `
+    // Collapse Mini Template Section
+    const collapseSection = document.createElement('div');
+    collapseSection.style.cssText = `
     background: linear-gradient(135deg, var(--slate-800), var(--slate-750));
     border: 1px solid var(--slate-700);
     border-radius: ${sectionBorderRadius};
@@ -9713,9 +9713,9 @@ function buildCrosshairSettingsOverlay() {
     z-index: 1;
   `;
 
-  const collapseLabel = document.createElement('div');
-  collapseLabel.textContent = 'Collapse Mini Template:';
-  collapseLabel.style.cssText = `
+    const collapseLabel = document.createElement('div');
+    collapseLabel.textContent = 'Collapse Mini Template:';
+    collapseLabel.style.cssText = `
     font-size: 1em; 
     margin-bottom: 12px; 
     color: var(--slate-200);
@@ -9723,9 +9723,9 @@ function buildCrosshairSettingsOverlay() {
     letter-spacing: -0.01em;
   `;
 
-  const collapseDescription = document.createElement('div');
-  collapseDescription.textContent = 'Hide mini tracker when template section is collapsed.';
-  collapseDescription.style.cssText = `
+    const collapseDescription = document.createElement('div');
+    collapseDescription.textContent = 'Hide mini tracker when template section is collapsed.';
+    collapseDescription.style.cssText = `
     font-size: 0.9em; 
     color: var(--slate-300); 
     margin-bottom: 16px; 
@@ -9733,81 +9733,81 @@ function buildCrosshairSettingsOverlay() {
     letter-spacing: -0.005em;
   `;
 
-  let tempCollapseMinEnabled = getCollapseMinEnabled();
+    let tempCollapseMinEnabled = getCollapseMinEnabled();
 
-  const collapseToggle = document.createElement('div');
-  collapseToggle.style.cssText = `
+    const collapseToggle = document.createElement('div');
+    collapseToggle.style.cssText = `
     display: flex;
     align-items: center;
     gap: 8px;
   `;
 
-  const collapseCheckbox = document.createElement('input');
-  collapseCheckbox.type = 'checkbox';
-  collapseCheckbox.checked = tempCollapseMinEnabled;
-  collapseCheckbox.style.cssText = `
+    const collapseCheckbox = document.createElement('input');
+    collapseCheckbox.type = 'checkbox';
+    collapseCheckbox.checked = tempCollapseMinEnabled;
+    collapseCheckbox.style.cssText = `
     width: 16px;
     height: 16px;
     cursor: pointer;
   `;
 
-  const collapseToggleText = document.createElement('span');
-  collapseToggleText.textContent = tempCollapseMinEnabled ? 'Enabled' : 'Disabled';
-  collapseToggleText.style.cssText = `
+    const collapseToggleText = document.createElement('span');
+    collapseToggleText.textContent = tempCollapseMinEnabled ? 'Enabled' : 'Disabled';
+    collapseToggleText.style.cssText = `
     color: ${tempCollapseMinEnabled ? '#4caf50' : '#f44336'};
     font-weight: bold;
     cursor: pointer;
   `;
 
-  // Function to update collapse state
-  const updateCollapseState = () => {
-    tempCollapseMinEnabled = collapseCheckbox.checked;
-    collapseToggleText.textContent = tempCollapseMinEnabled ? 'Enabled' : 'Disabled';
-    collapseToggleText.style.color = tempCollapseMinEnabled ? '#4caf50' : '#f44336';
-  };
+    // Function to update collapse state
+    const updateCollapseState = () => {
+      tempCollapseMinEnabled = collapseCheckbox.checked;
+      collapseToggleText.textContent = tempCollapseMinEnabled ? 'Enabled' : 'Disabled';
+      collapseToggleText.style.color = tempCollapseMinEnabled ? '#4caf50' : '#f44336';
+    };
 
-  collapseCheckbox.addEventListener('change', updateCollapseState);
+    collapseCheckbox.addEventListener('change', updateCollapseState);
 
-  // Only make the TEXT clickable, not the whole container
-  collapseToggleText.onclick = (e) => {
-    e.stopPropagation(); // Prevent event bubbling
-    collapseCheckbox.checked = !collapseCheckbox.checked;
-    updateCollapseState();
-  };
+    // Only make the TEXT clickable, not the whole container
+    collapseToggleText.onclick = (e) => {
+      e.stopPropagation(); // Prevent event bubbling
+      collapseCheckbox.checked = !collapseCheckbox.checked;
+      updateCollapseState();
+    };
 
-  // Remove cursor pointer from the container since only text should be clickable
-  collapseToggle.style.cursor = 'default';
+    // Remove cursor pointer from the container since only text should be clickable
+    collapseToggle.style.cursor = 'default';
 
-  collapseToggle.appendChild(collapseCheckbox);
-  collapseToggle.appendChild(collapseToggleText);
-  // Visual feedback for enabled/disabled
-  const applyCollapseVisual = () => {
-    collapseToggleText.style.background = '';
-    collapseToggleText.style.border = '';
-    collapseToggleText.style.padding = '';
-    collapseToggleText.style.borderRadius = '';
-    collapseToggleText.style.color = tempCollapseMinEnabled ? '#4caf50' : '#f44336';
-    collapseToggleText.textContent = tempCollapseMinEnabled ? 'Enabled' : 'Disabled';
-  };
-  applyCollapseVisual();
-  const oldUpdateCollapse = updateCollapseState;
-  const updateCollapseStateWrapped = () => { oldUpdateCollapse(); applyCollapseVisual(); };
-  collapseCheckbox.removeEventListener('change', updateCollapseState);
-  collapseCheckbox.addEventListener('change', updateCollapseStateWrapped);
-  // Make TEXT clickable too
-  collapseToggleText.onclick = (e) => {
-    e.stopPropagation();
-    collapseCheckbox.checked = !collapseCheckbox.checked;
-    updateCollapseStateWrapped();
-  };
-  collapseSection.appendChild(collapseLabel);
-  collapseSection.appendChild(collapseDescription);
-  collapseSection.appendChild(collapseToggle);
+    collapseToggle.appendChild(collapseCheckbox);
+    collapseToggle.appendChild(collapseToggleText);
+    // Visual feedback for enabled/disabled
+    const applyCollapseVisual = () => {
+      collapseToggleText.style.background = '';
+      collapseToggleText.style.border = '';
+      collapseToggleText.style.padding = '';
+      collapseToggleText.style.borderRadius = '';
+      collapseToggleText.style.color = tempCollapseMinEnabled ? '#4caf50' : '#f44336';
+      collapseToggleText.textContent = tempCollapseMinEnabled ? 'Enabled' : 'Disabled';
+    };
+    applyCollapseVisual();
+    const oldUpdateCollapse = updateCollapseState;
+    const updateCollapseStateWrapped = () => { oldUpdateCollapse(); applyCollapseVisual(); };
+    collapseCheckbox.removeEventListener('change', updateCollapseState);
+    collapseCheckbox.addEventListener('change', updateCollapseStateWrapped);
+    // Make TEXT clickable too
+    collapseToggleText.onclick = (e) => {
+      e.stopPropagation();
+      collapseCheckbox.checked = !collapseCheckbox.checked;
+      updateCollapseStateWrapped();
+    };
+    collapseSection.appendChild(collapseLabel);
+    collapseSection.appendChild(collapseDescription);
+    collapseSection.appendChild(collapseToggle);
 
-  // Create fixed footer with action buttons
-  const footerContainer = document.createElement('div');
-  const footerPadding = isMobileMode ? '10px 12px' : '16px 20px';
-  footerContainer.style.cssText = `
+    // Create fixed footer with action buttons
+    const footerContainer = document.createElement('div');
+    const footerPadding = isMobileMode ? '10px 12px' : '16px 20px';
+    footerContainer.style.cssText = `
     display: flex;
     gap: 12px;
     justify-content: center;
@@ -9820,18 +9820,18 @@ function buildCrosshairSettingsOverlay() {
     flex-shrink: 0;
   `;
 
-  // Action buttons
-  const actionsContainer = document.createElement('div');
-  actionsContainer.style.cssText = `
+    // Action buttons
+    const actionsContainer = document.createElement('div');
+    actionsContainer.style.cssText = `
     display: flex;
     gap: 12px;
     width: 100%;
     max-width: 400px;
   `;
 
-  const cancelButton = document.createElement('button');
-  cancelButton.textContent = 'Cancel';
-  cancelButton.style.cssText = `
+    const cancelButton = document.createElement('button');
+    cancelButton.textContent = 'Cancel';
+    cancelButton.style.cssText = `
     background: linear-gradient(135deg, var(--slate-600), var(--slate-700));
     border: 1px solid var(--slate-500);
     color: var(--slate-100);
@@ -9845,48 +9845,48 @@ function buildCrosshairSettingsOverlay() {
     position: relative;
     overflow: hidden;
   `;
-  cancelButton.onmouseover = () => {
-    cancelButton.style.transform = 'translateY(-1px)';
-    cancelButton.style.background = 'linear-gradient(135deg, var(--slate-500), var(--slate-600))';
-    cancelButton.style.boxShadow = '0 6px 20px rgba(71, 85, 105, 0.3)';
-  };
-  cancelButton.onmouseout = () => {
-    cancelButton.style.transform = '';
-    cancelButton.style.background = 'linear-gradient(135deg, var(--slate-600), var(--slate-700))';
-    cancelButton.style.boxShadow = '';
-  };
-  cancelButton.onclick = () => {
-    // Check if any settings have changed
-    const currentColorSaved = getCrosshairColor();
-    const currentBorderSaved = getBorderEnabled();
-    const currentTrackerSaved = getMiniTrackerEnabled();
-    const currentCollapseSaved = getCollapseMinEnabled();
-    const currentMobileSaved = getMobileMode();
-    
-    const hasChanges = 
-      JSON.stringify(tempColor) !== JSON.stringify(currentColorSaved) ||
-      tempBorderEnabled !== currentBorderSaved ||
-      tempEnhancedSize !== getEnhancedSizeEnabled() ||
-      tempRadius !== getCrosshairRadius() ||
-      tempMiniTrackerEnabled !== currentTrackerSaved ||
-      tempCollapseMinEnabled !== currentCollapseSaved ||
-      tempMobileMode !== currentMobileSaved ||
-      tempShowLeftOnColor !== getShowLeftOnColorEnabled() ||
-      tempNavigationMethod !== Settings.getNavigationMethod();
-    
-    if (hasChanges) {
-      if (confirm('Discard changes? Any unsaved settings will be lost.')) {
-        settingsOverlay.remove();
-        overlayMain.handleDisplayStatus('Crosshair settings cancelled - changes discarded');
-      }
-    } else {
-      settingsOverlay.remove();
-    }
-  };
+    cancelButton.onmouseover = () => {
+      cancelButton.style.transform = 'translateY(-1px)';
+      cancelButton.style.background = 'linear-gradient(135deg, var(--slate-500), var(--slate-600))';
+      cancelButton.style.boxShadow = '0 6px 20px rgba(71, 85, 105, 0.3)';
+    };
+    cancelButton.onmouseout = () => {
+      cancelButton.style.transform = '';
+      cancelButton.style.background = 'linear-gradient(135deg, var(--slate-600), var(--slate-700))';
+      cancelButton.style.boxShadow = '';
+    };
+    cancelButton.onclick = () => {
+      // Check if any settings have changed
+      const currentColorSaved = getCrosshairColor();
+      const currentBorderSaved = getBorderEnabled();
+      const currentTrackerSaved = getMiniTrackerEnabled();
+      const currentCollapseSaved = getCollapseMinEnabled();
+      const currentMobileSaved = getMobileMode();
 
-  const applyButton = document.createElement('button');
-  applyButton.textContent = 'Apply Settings';
-  applyButton.style.cssText = `
+      const hasChanges =
+        JSON.stringify(tempColor) !== JSON.stringify(currentColorSaved) ||
+        tempBorderEnabled !== currentBorderSaved ||
+        tempEnhancedSize !== getEnhancedSizeEnabled() ||
+        tempRadius !== getCrosshairRadius() ||
+        tempMiniTrackerEnabled !== currentTrackerSaved ||
+        tempCollapseMinEnabled !== currentCollapseSaved ||
+        tempMobileMode !== currentMobileSaved ||
+        tempShowLeftOnColor !== getShowLeftOnColorEnabled() ||
+        tempNavigationMethod !== Settings.getNavigationMethod();
+
+      if (hasChanges) {
+        if (confirm('Discard changes? Any unsaved settings will be lost.')) {
+          settingsOverlay.remove();
+          overlayMain.handleDisplayStatus('Crosshair settings cancelled - changes discarded');
+        }
+      } else {
+        settingsOverlay.remove();
+      }
+    };
+
+    const applyButton = document.createElement('button');
+    applyButton.textContent = 'Apply Settings';
+    applyButton.style.cssText = `
     background: linear-gradient(135deg, var(--blue-500), var(--blue-600));
     border: 1px solid var(--blue-600);
     color: white;
@@ -9900,100 +9900,100 @@ function buildCrosshairSettingsOverlay() {
     position: relative;
     overflow: hidden;
   `;
-  applyButton.onmouseover = () => {
-    applyButton.style.transform = 'translateY(-1px)';
-    applyButton.style.background = 'linear-gradient(135deg, var(--blue-600), var(--blue-700))';
-    applyButton.style.boxShadow = '0 6px 20px rgba(59, 130, 246, 0.4)';
-  };
-  applyButton.onmouseout = () => {
-    applyButton.style.transform = '';
-    applyButton.style.background = 'linear-gradient(135deg, var(--blue-500), var(--blue-600))';
-    applyButton.style.boxShadow = '';
-  };
+    applyButton.onmouseover = () => {
+      applyButton.style.transform = 'translateY(-1px)';
+      applyButton.style.background = 'linear-gradient(135deg, var(--blue-600), var(--blue-700))';
+      applyButton.style.boxShadow = '0 6px 20px rgba(59, 130, 246, 0.4)';
+    };
+    applyButton.onmouseout = () => {
+      applyButton.style.transform = '';
+      applyButton.style.background = 'linear-gradient(135deg, var(--blue-500), var(--blue-600))';
+      applyButton.style.boxShadow = '';
+    };
 
-  applyButton.onclick = async () => {
-    // Visual feedback - button click animation
-    const originalBg = applyButton.style.background;
-    const originalText = applyButton.textContent;
-    
-    // Immediate click feedback
-    applyButton.style.background = 'linear-gradient(135deg, var(--emerald-500), var(--emerald-600))';
-    applyButton.textContent = 'Applying...';
-    applyButton.style.transform = 'scale(0.95)';
-    applyButton.disabled = true;
-    
-    try {
-      saveCrosshairColor(tempColor);
-      saveBorderEnabled(tempBorderEnabled);
-      saveEnhancedSizeEnabled(tempEnhancedSize);
-      saveCrosshairRadius(tempRadius);
-      saveMiniTrackerEnabled(tempMiniTrackerEnabled);
-      saveCollapseMinEnabled(tempCollapseMinEnabled);
-      saveMobileMode(tempMobileMode);
-      saveShowLeftOnColorEnabled(tempShowLeftOnColor);
-      Settings.saveNavigationMethod(tempNavigationMethod);
-      
-      // Apply mobile mode to existing Color Filter overlay dynamically
-      applyMobileModeToColorFilter(tempMobileMode);
+    applyButton.onclick = async () => {
+      // Visual feedback - button click animation
+      const originalBg = applyButton.style.background;
+      const originalText = applyButton.textContent;
 
-      // Refresh palette badges immediately after applying settings
+      // Immediate click feedback
+      applyButton.style.background = 'linear-gradient(135deg, var(--emerald-500), var(--emerald-600))';
+      applyButton.textContent = 'Applying...';
+      applyButton.style.transform = 'scale(0.95)';
+      applyButton.disabled = true;
+
       try {
-        const stats = templateManager.calculateRemainingPixelsByColor(0, true); // Only enabled templates
-        updatePaletteLeftBadges(stats);
-      } catch (e) {
-        consoleWarn('Failed to refresh palette left badges after apply:', e);
-      }
-      
-      // Success feedback
-      applyButton.style.background = 'linear-gradient(135deg, var(--emerald-600), var(--emerald-700))';
-      applyButton.textContent = 'Applied! ✓';
-      
-      // Update mini tracker visibility and restart auto-update
-      updateMiniTracker();
-      startMiniTrackerAutoUpdate();
-      
-      // Force invalidate template caches to ensure borders are applied
-      if (templateManager.templatesArray && templateManager.templatesArray.length > 0) {
-        templateManager.templatesArray.forEach(template => {
-          if (template.invalidateEnhancedCache) {
-            template.invalidateEnhancedCache();
-          }
-        });
-      }
-      
-      // Refresh template display to apply new settings
-      await refreshTemplateDisplay();
-      
-      // Close overlay after short delay
-      setTimeout(() => {
-        settingsOverlay.remove();
-        overlayMain.handleDisplayStatus(`Crosshair settings applied: ${tempColor.name}, ${tempBorderEnabled ? 'with' : 'without'} borders, tracker ${tempMiniTrackerEnabled ? 'enabled' : 'disabled'}, collapse ${tempCollapseMinEnabled ? 'enabled' : 'disabled'}, mobile ${tempMobileMode ? 'enabled' : 'disabled'}, Left-on-Color ${tempShowLeftOnColor ? 'enabled' : 'disabled'}!`);
-      }, 800);
-    } catch (error) {
-      // Error feedback
-      applyButton.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
-      applyButton.textContent = 'Error! ✗';
-      
-      setTimeout(() => {
-        applyButton.style.background = originalBg;
-        applyButton.textContent = originalText;
-        applyButton.style.transform = 'scale(1)';
-        applyButton.disabled = false;
-      }, 2000);
-      
-      consoleError('❌ Error applying crosshair settings:', error);
-      overlayMain.handleDisplayError('Failed to apply crosshair settings');
-    }
-  };
+        saveCrosshairColor(tempColor);
+        saveBorderEnabled(tempBorderEnabled);
+        saveEnhancedSizeEnabled(tempEnhancedSize);
+        saveCrosshairRadius(tempRadius);
+        saveMiniTrackerEnabled(tempMiniTrackerEnabled);
+        saveCollapseMinEnabled(tempCollapseMinEnabled);
+        saveMobileMode(tempMobileMode);
+        saveShowLeftOnColorEnabled(tempShowLeftOnColor);
+        Settings.saveNavigationMethod(tempNavigationMethod);
 
-  actionsContainer.appendChild(cancelButton);
-  actionsContainer.appendChild(applyButton);
-  footerContainer.appendChild(actionsContainer);
+        // Apply mobile mode to existing Color Filter overlay dynamically
+        applyMobileModeToColorFilter(tempMobileMode);
 
-  // Create scrollable content container for fixed header solution
-  const contentContainer = document.createElement('div');
-  const contentPadding = isMobileMode ? '12px' : '20px';
-  contentContainer.style.cssText = `
+        // Refresh palette badges immediately after applying settings
+        try {
+          const stats = templateManager.calculateRemainingPixelsByColor(0, true); // Only enabled templates
+          updatePaletteLeftBadges(stats);
+        } catch (e) {
+          consoleWarn('Failed to refresh palette left badges after apply:', e);
+        }
+
+        // Success feedback
+        applyButton.style.background = 'linear-gradient(135deg, var(--emerald-600), var(--emerald-700))';
+        applyButton.textContent = 'Applied! ✓';
+
+        // Update mini tracker visibility and restart auto-update
+        updateMiniTracker();
+        startMiniTrackerAutoUpdate();
+
+        // Force invalidate template caches to ensure borders are applied
+        if (templateManager.templatesArray && templateManager.templatesArray.length > 0) {
+          templateManager.templatesArray.forEach(template => {
+            if (template.invalidateEnhancedCache) {
+              template.invalidateEnhancedCache();
+            }
+          });
+        }
+
+        // Refresh template display to apply new settings
+        await refreshTemplateDisplay();
+
+        // Close overlay after short delay
+        setTimeout(() => {
+          settingsOverlay.remove();
+          overlayMain.handleDisplayStatus(`Crosshair settings applied: ${tempColor.name}, ${tempBorderEnabled ? 'with' : 'without'} borders, tracker ${tempMiniTrackerEnabled ? 'enabled' : 'disabled'}, collapse ${tempCollapseMinEnabled ? 'enabled' : 'disabled'}, mobile ${tempMobileMode ? 'enabled' : 'disabled'}, Left-on-Color ${tempShowLeftOnColor ? 'enabled' : 'disabled'}!`);
+        }, 800);
+      } catch (error) {
+        // Error feedback
+        applyButton.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
+        applyButton.textContent = 'Error! ✗';
+
+        setTimeout(() => {
+          applyButton.style.background = originalBg;
+          applyButton.textContent = originalText;
+          applyButton.style.transform = 'scale(1)';
+          applyButton.disabled = false;
+        }, 2000);
+
+        consoleError('❌ Error applying crosshair settings:', error);
+        overlayMain.handleDisplayError('Failed to apply crosshair settings');
+      }
+    };
+
+    actionsContainer.appendChild(cancelButton);
+    actionsContainer.appendChild(applyButton);
+    footerContainer.appendChild(actionsContainer);
+
+    // Create scrollable content container for fixed header solution
+    const contentContainer = document.createElement('div');
+    const contentPadding = isMobileMode ? '12px' : '20px';
+    contentContainer.style.cssText = `
     overflow-y: auto;
     flex: 1;
     min-height: 0;
@@ -10002,17 +10002,17 @@ function buildCrosshairSettingsOverlay() {
     z-index: 1;
   `;
 
-  // Assemble overlay with fixed header and footer
-  settingsOverlay.appendChild(header);
-  contentContainer.appendChild(instructions);
-  contentContainer.appendChild(currentColorPreview);
-  contentContainer.appendChild(colorGrid);
-  contentContainer.appendChild(alphaSection);
-  contentContainer.appendChild(borderSection);
+    // Assemble overlay with fixed header and footer
+    settingsOverlay.appendChild(header);
+    contentContainer.appendChild(instructions);
+    contentContainer.appendChild(currentColorPreview);
+    contentContainer.appendChild(colorGrid);
+    contentContainer.appendChild(alphaSection);
+    contentContainer.appendChild(borderSection);
 
-  // Username visibility setting
-  const usernameSection = document.createElement('div');
-  usernameSection.style.cssText = `
+    // Username visibility setting
+    const usernameSection = document.createElement('div');
+    usernameSection.style.cssText = `
     background: linear-gradient(135deg, var(--slate-800), var(--slate-750));
     border: 1px solid var(--slate-700);
     border-radius: ${sectionBorderRadius};
@@ -10020,31 +10020,31 @@ function buildCrosshairSettingsOverlay() {
     margin-bottom: ${sectionMargin};
     position: relative;
     z-index: 1;`;
-  const usernameLabel = document.createElement('label');
-  usernameLabel.style.cssText = 'display:flex; align-items:center; gap:10px; cursor:pointer; user-select:none;';
-  const usernameCheckbox = document.createElement('input');
-  usernameCheckbox.type = 'checkbox';
-  try { usernameCheckbox.checked = JSON.parse(localStorage.getItem('bmShowUsername') ?? 'true'); } catch(_) { usernameCheckbox.checked = true; }
-  const usernameText = document.createElement('span');
-  usernameText.textContent = 'Show Username in main window';
-  usernameText.style.cssText = 'color: var(--slate-200); font-weight:600;';
-  usernameCheckbox.onchange = () => {
-    const next = !!usernameCheckbox.checked;
-    localStorage.setItem('bmShowUsername', JSON.stringify(next));
-    const el = document.getElementById('bm-user-name');
-    if (el) el.style.display = next ? '' : 'none';
-  };
-  usernameLabel.appendChild(usernameCheckbox);
-  usernameLabel.appendChild(usernameText);
-  usernameSection.appendChild(usernameLabel);
-  contentContainer.appendChild(usernameSection);
-  contentContainer.appendChild(sizeSection);
-  contentContainer.appendChild(radiusSection);
-  contentContainer.appendChild(trackerSection);
-  
-  // Show Left number on color cards (compact mode)
-  const leftOnColorSection = document.createElement('div');
-  leftOnColorSection.style.cssText = `
+    const usernameLabel = document.createElement('label');
+    usernameLabel.style.cssText = 'display:flex; align-items:center; gap:10px; cursor:pointer; user-select:none;';
+    const usernameCheckbox = document.createElement('input');
+    usernameCheckbox.type = 'checkbox';
+    try { usernameCheckbox.checked = JSON.parse(localStorage.getItem('bmShowUsername') ?? 'true'); } catch (_) { usernameCheckbox.checked = true; }
+    const usernameText = document.createElement('span');
+    usernameText.textContent = 'Show Username in main window';
+    usernameText.style.cssText = 'color: var(--slate-200); font-weight:600;';
+    usernameCheckbox.onchange = () => {
+      const next = !!usernameCheckbox.checked;
+      localStorage.setItem('bmShowUsername', JSON.stringify(next));
+      const el = document.getElementById('bm-user-name');
+      if (el) el.style.display = next ? '' : 'none';
+    };
+    usernameLabel.appendChild(usernameCheckbox);
+    usernameLabel.appendChild(usernameText);
+    usernameSection.appendChild(usernameLabel);
+    contentContainer.appendChild(usernameSection);
+    contentContainer.appendChild(sizeSection);
+    contentContainer.appendChild(radiusSection);
+    contentContainer.appendChild(trackerSection);
+
+    // Show Left number on color cards (compact mode)
+    const leftOnColorSection = document.createElement('div');
+    leftOnColorSection.style.cssText = `
     background: linear-gradient(135deg, var(--slate-800), var(--slate-750));
     border: 1px solid var(--slate-700);
     border-radius: ${sectionBorderRadius};
@@ -10053,93 +10053,93 @@ function buildCrosshairSettingsOverlay() {
     position: relative;
     z-index: 1;
   `;
-  const leftOnColorLabel = document.createElement('div');
-  leftOnColorLabel.textContent = 'Display Left number on color cards:';
-  leftOnColorLabel.style.cssText = `
+    const leftOnColorLabel = document.createElement('div');
+    leftOnColorLabel.textContent = 'Display Left number on color cards:';
+    leftOnColorLabel.style.cssText = `
     font-size: 1em; 
     margin-bottom: 12px; 
     color: var(--slate-200);
     font-weight: 600;
     letter-spacing: -0.01em;
   `;
-  const leftOnColorDescription = document.createElement('div');
-  leftOnColorDescription.textContent = 'Displays just the remaining pixels number centered on each color.';
-  leftOnColorDescription.style.cssText = `
+    const leftOnColorDescription = document.createElement('div');
+    leftOnColorDescription.textContent = 'Displays just the remaining pixels number centered on each color.';
+    leftOnColorDescription.style.cssText = `
     font-size: 0.9em; 
     color: var(--slate-300); 
     margin-bottom: 16px; 
     line-height: 1.4;
     letter-spacing: -0.005em;
   `;
-  const leftOnColorToggle = document.createElement('div');
-  leftOnColorToggle.style.cssText = `
+    const leftOnColorToggle = document.createElement('div');
+    leftOnColorToggle.style.cssText = `
     display: flex;
     align-items: center;
     gap: 8px;
   `;
-  const leftOnColorCheckbox = document.createElement('input');
-  leftOnColorCheckbox.type = 'checkbox';
-  leftOnColorCheckbox.checked = tempShowLeftOnColor;
-  leftOnColorCheckbox.style.cssText = `
+    const leftOnColorCheckbox = document.createElement('input');
+    leftOnColorCheckbox.type = 'checkbox';
+    leftOnColorCheckbox.checked = tempShowLeftOnColor;
+    leftOnColorCheckbox.style.cssText = `
     width: 16px;
     height: 16px;
     cursor: pointer;
   `;
-  const leftOnColorToggleText = document.createElement('span');
-  leftOnColorToggleText.textContent = tempShowLeftOnColor ? 'Enabled' : 'Disabled';
-  leftOnColorToggleText.style.cssText = `
+    const leftOnColorToggleText = document.createElement('span');
+    leftOnColorToggleText.textContent = tempShowLeftOnColor ? 'Enabled' : 'Disabled';
+    leftOnColorToggleText.style.cssText = `
     color: ${tempShowLeftOnColor ? '#4caf50' : '#f44336'};
     font-weight: bold;
     cursor: pointer;
   `;
-  const updateLeftOnColorState = () => {
-    tempShowLeftOnColor = leftOnColorCheckbox.checked;
-    leftOnColorToggleText.textContent = tempShowLeftOnColor ? 'Enabled' : 'Disabled';
-    leftOnColorToggleText.style.color = tempShowLeftOnColor ? '#4caf50' : '#f44336';
-  };
-  leftOnColorCheckbox.addEventListener('change', updateLeftOnColorState);
-  leftOnColorToggleText.onclick = (e) => {
-    e.stopPropagation();
-    leftOnColorCheckbox.checked = !leftOnColorCheckbox.checked;
-    updateLeftOnColorState();
-  };
-  leftOnColorToggle.style.cursor = 'default';
-  leftOnColorToggle.appendChild(leftOnColorCheckbox);
-  leftOnColorToggle.appendChild(leftOnColorToggleText);
-  // Visual estado verde/vermelho no container
-  const applyLeftOnColorToggleVisual = () => {
-    leftOnColorToggleText.style.background = '';
-    leftOnColorToggleText.style.border = '';
-    leftOnColorToggleText.style.padding = '';
-    leftOnColorToggleText.style.borderRadius = '';
-    leftOnColorToggleText.style.color = tempShowLeftOnColor ? '#4caf50' : '#f44336';
-    leftOnColorToggleText.textContent = tempShowLeftOnColor ? 'Enabled' : 'Disabled';
-  };
-  applyLeftOnColorToggleVisual();
-  // Hook on change
-  const oldUpdateLeftOnColorState = updateLeftOnColorState;
-  const updateLeftOnColorStateWrapped = () => {
-    oldUpdateLeftOnColorState();
+    const updateLeftOnColorState = () => {
+      tempShowLeftOnColor = leftOnColorCheckbox.checked;
+      leftOnColorToggleText.textContent = tempShowLeftOnColor ? 'Enabled' : 'Disabled';
+      leftOnColorToggleText.style.color = tempShowLeftOnColor ? '#4caf50' : '#f44336';
+    };
+    leftOnColorCheckbox.addEventListener('change', updateLeftOnColorState);
+    leftOnColorToggleText.onclick = (e) => {
+      e.stopPropagation();
+      leftOnColorCheckbox.checked = !leftOnColorCheckbox.checked;
+      updateLeftOnColorState();
+    };
+    leftOnColorToggle.style.cursor = 'default';
+    leftOnColorToggle.appendChild(leftOnColorCheckbox);
+    leftOnColorToggle.appendChild(leftOnColorToggleText);
+    // Visual estado verde/vermelho no container
+    const applyLeftOnColorToggleVisual = () => {
+      leftOnColorToggleText.style.background = '';
+      leftOnColorToggleText.style.border = '';
+      leftOnColorToggleText.style.padding = '';
+      leftOnColorToggleText.style.borderRadius = '';
+      leftOnColorToggleText.style.color = tempShowLeftOnColor ? '#4caf50' : '#f44336';
+      leftOnColorToggleText.textContent = tempShowLeftOnColor ? 'Enabled' : 'Disabled';
+    };
     applyLeftOnColorToggleVisual();
-  };
-  leftOnColorCheckbox.removeEventListener('change', updateLeftOnColorState);
-  leftOnColorCheckbox.addEventListener('change', updateLeftOnColorStateWrapped);
-  // Make TEXT clickable too
-  leftOnColorToggleText.onclick = (e) => {
-    e.stopPropagation();
-    leftOnColorCheckbox.checked = !leftOnColorCheckbox.checked;
-    updateLeftOnColorStateWrapped();
-  };
-  leftOnColorSection.appendChild(leftOnColorLabel);
-  leftOnColorSection.appendChild(leftOnColorDescription);
-  leftOnColorSection.appendChild(leftOnColorToggle);
-  contentContainer.appendChild(mobileSection);
-  contentContainer.appendChild(leftOnColorSection);
-  contentContainer.appendChild(collapseSection);
+    // Hook on change
+    const oldUpdateLeftOnColorState = updateLeftOnColorState;
+    const updateLeftOnColorStateWrapped = () => {
+      oldUpdateLeftOnColorState();
+      applyLeftOnColorToggleVisual();
+    };
+    leftOnColorCheckbox.removeEventListener('change', updateLeftOnColorState);
+    leftOnColorCheckbox.addEventListener('change', updateLeftOnColorStateWrapped);
+    // Make TEXT clickable too
+    leftOnColorToggleText.onclick = (e) => {
+      e.stopPropagation();
+      leftOnColorCheckbox.checked = !leftOnColorCheckbox.checked;
+      updateLeftOnColorStateWrapped();
+    };
+    leftOnColorSection.appendChild(leftOnColorLabel);
+    leftOnColorSection.appendChild(leftOnColorDescription);
+    leftOnColorSection.appendChild(leftOnColorToggle);
+    contentContainer.appendChild(mobileSection);
+    contentContainer.appendChild(leftOnColorSection);
+    contentContainer.appendChild(collapseSection);
 
-  // Navigation method section
-  const navigationSection = document.createElement('div');
-  navigationSection.style.cssText = `
+    // Navigation method section
+    const navigationSection = document.createElement('div');
+    navigationSection.style.cssText = `
     background: linear-gradient(135deg, var(--slate-800), var(--slate-750));
     border: 1px solid var(--slate-700);
     border-radius: ${sectionBorderRadius};
@@ -10149,9 +10149,9 @@ function buildCrosshairSettingsOverlay() {
     z-index: 1;
   `;
 
-  const navigationLabel = document.createElement('h3');
-  navigationLabel.textContent = 'Navigation Method';
-  navigationLabel.style.cssText = `
+    const navigationLabel = document.createElement('h3');
+    navigationLabel.textContent = 'Navigation Method';
+    navigationLabel.style.cssText = `
     margin: 0 0 8px 0;
     color: var(--slate-100);
     font-size: 1em;
@@ -10159,20 +10159,20 @@ function buildCrosshairSettingsOverlay() {
     letter-spacing: -0.01em;
   `;
 
-  const navigationDescription = document.createElement('p');
-  navigationDescription.textContent = 'Choose how to navigate when clicking search results and favorites';
-  navigationDescription.style.cssText = `
+    const navigationDescription = document.createElement('p');
+    navigationDescription.textContent = 'Choose how to navigate when clicking search results and favorites';
+    navigationDescription.style.cssText = `
     margin: 0 0 16px 0;
     color: var(--slate-400);
     font-size: 0.85em;
     line-height: 1.4;
   `;
 
-  // Get current navigation method setting (single source of truth)
-  let tempNavigationMethod = Settings.getNavigationMethod();
+    // Get current navigation method setting (single source of truth)
+    let tempNavigationMethod = Settings.getNavigationMethod();
 
-  const navigationToggle = document.createElement('div');
-  navigationToggle.style.cssText = `
+    const navigationToggle = document.createElement('div');
+    navigationToggle.style.cssText = `
     display: flex;
     gap: 8px;
     padding: 4px;
@@ -10181,9 +10181,9 @@ function buildCrosshairSettingsOverlay() {
     border: 1px solid var(--slate-600);
   `;
 
-  const flytoButton = document.createElement('button');
-  flytoButton.textContent = 'FlyTo';
-  flytoButton.style.cssText = `
+    const flytoButton = document.createElement('button');
+    flytoButton.textContent = 'FlyTo';
+    flytoButton.style.cssText = `
     flex: 1;
     padding: 8px 12px;
     border: none;
@@ -10192,15 +10192,15 @@ function buildCrosshairSettingsOverlay() {
     font-size: 0.9em;
     font-weight: 600;
     transition: all 0.2s ease;
-    ${tempNavigationMethod === 'flyto' 
-      ? 'background: linear-gradient(135deg, var(--blue-500), var(--blue-600)); color: white;'
-      : 'background: transparent; color: var(--slate-300);'
-    }
+    ${tempNavigationMethod === 'flyto'
+        ? 'background: linear-gradient(135deg, var(--blue-500), var(--blue-600)); color: white;'
+        : 'background: transparent; color: var(--slate-300);'
+      }
   `;
 
-  const openurlButton = document.createElement('button');
-  openurlButton.textContent = 'OpenURL';
-  openurlButton.style.cssText = `
+    const openurlButton = document.createElement('button');
+    openurlButton.textContent = 'OpenURL';
+    openurlButton.style.cssText = `
     flex: 1;
     padding: 8px 12px;
     border: none;
@@ -10209,38 +10209,38 @@ function buildCrosshairSettingsOverlay() {
     font-size: 0.9em;
     font-weight: 600;
     transition: all 0.2s ease;
-    ${tempNavigationMethod === 'openurl' 
-      ? 'background: linear-gradient(135deg, var(--blue-500), var(--blue-600)); color: white;'
-      : 'background: transparent; color: var(--slate-300);'
-    }
+    ${tempNavigationMethod === 'openurl'
+        ? 'background: linear-gradient(135deg, var(--blue-500), var(--blue-600)); color: white;'
+        : 'background: transparent; color: var(--slate-300);'
+      }
   `;
 
-  flytoButton.onclick = () => {
-    tempNavigationMethod = 'flyto';
-    flytoButton.style.background = 'linear-gradient(135deg, var(--blue-500), var(--blue-600))';
-    flytoButton.style.color = 'white';
-    openurlButton.style.background = 'transparent';
-    openurlButton.style.color = 'var(--slate-300)';
-  };
+    flytoButton.onclick = () => {
+      tempNavigationMethod = 'flyto';
+      flytoButton.style.background = 'linear-gradient(135deg, var(--blue-500), var(--blue-600))';
+      flytoButton.style.color = 'white';
+      openurlButton.style.background = 'transparent';
+      openurlButton.style.color = 'var(--slate-300)';
+    };
 
-  openurlButton.onclick = () => {
-    tempNavigationMethod = 'openurl';
-    openurlButton.style.background = 'linear-gradient(135deg, var(--blue-500), var(--blue-600))';
-    openurlButton.style.color = 'white';
-    flytoButton.style.background = 'transparent';
-    flytoButton.style.color = 'var(--slate-300)';
-  };
+    openurlButton.onclick = () => {
+      tempNavigationMethod = 'openurl';
+      openurlButton.style.background = 'linear-gradient(135deg, var(--blue-500), var(--blue-600))';
+      openurlButton.style.color = 'white';
+      flytoButton.style.background = 'transparent';
+      flytoButton.style.color = 'var(--slate-300)';
+    };
 
-  navigationToggle.appendChild(flytoButton);
-  navigationToggle.appendChild(openurlButton);
-  navigationSection.appendChild(navigationLabel);
-  navigationSection.appendChild(navigationDescription);
-  navigationSection.appendChild(navigationToggle);
-  contentContainer.appendChild(navigationSection);
+    navigationToggle.appendChild(flytoButton);
+    navigationToggle.appendChild(openurlButton);
+    navigationSection.appendChild(navigationLabel);
+    navigationSection.appendChild(navigationDescription);
+    navigationSection.appendChild(navigationToggle);
+    contentContainer.appendChild(navigationSection);
 
-  settingsOverlay.appendChild(contentContainer);
-  settingsOverlay.appendChild(footerContainer);
-  document.body.appendChild(settingsOverlay);
+    settingsOverlay.appendChild(contentContainer);
+    settingsOverlay.appendChild(footerContainer);
+    document.body.appendChild(settingsOverlay);
 
     // Add drag functionality
     let isDragging = false;
@@ -10253,34 +10253,34 @@ function buildCrosshairSettingsOverlay() {
       isDragging = true;
       dragStartX = e.clientX;
       dragStartY = e.clientY;
-      
+
       const rect = settingsOverlay.getBoundingClientRect();
       initialLeft = rect.left;
       initialTop = rect.top;
-      
+
       settingsOverlay.style.position = 'fixed';
       settingsOverlay.style.transform = 'none';
       settingsOverlay.style.left = initialLeft + 'px';
       settingsOverlay.style.top = initialTop + 'px';
-      
+
       e.preventDefault();
     });
 
     document.addEventListener('mousemove', (e) => {
       if (!isDragging) return;
-      
+
       const deltaX = e.clientX - dragStartX;
       const deltaY = e.clientY - dragStartY;
-      
+
       const newLeft = initialLeft + deltaX;
       const newTop = initialTop + deltaY;
-      
+
       const maxLeft = window.innerWidth - settingsOverlay.offsetWidth;
       const maxTop = window.innerHeight - settingsOverlay.offsetHeight;
-      
+
       const clampedLeft = Math.max(0, Math.min(newLeft, maxLeft));
       const clampedTop = Math.max(0, Math.min(newTop, maxTop));
-      
+
       settingsOverlay.style.left = clampedLeft + 'px';
       settingsOverlay.style.top = clampedTop + 'px';
     });
@@ -10288,7 +10288,7 @@ function buildCrosshairSettingsOverlay() {
     document.addEventListener('mouseup', () => {
       isDragging = false;
     });
-    
+
   } catch (error) {
     consoleError('Failed to build Crosshair Settings overlay:', error);
     overlayMain.handleDisplayError('Failed to open Crosshair Settings');
@@ -10340,7 +10340,7 @@ function createSearchWindow() {
 
   // Favorites management
   const FAVORITES_KEY = 'bm-search-favorites';
-  
+
   function getFavorites() {
     try {
       const stored = localStorage.getItem(FAVORITES_KEY);
@@ -10354,17 +10354,17 @@ function createSearchWindow() {
       return [];
     }
   }
-  
+
   function getFilteredFavorites(filterValue) {
     const list = getFavorites();
     const query = (filterValue || '').toLowerCase();
-    if (!query) {return list;}
+    if (!query) { return list; }
     return list.filter(fav => {
       const a = `${fav.primaryName || ''} ${fav.secondaryInfo || ''} ${fav.fullAddress || ''}`.toLowerCase();
       return a.includes(query);
     });
   }
-  
+
   function saveFavorites(favorites) {
     try {
       localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
@@ -10373,7 +10373,7 @@ function createSearchWindow() {
       console.error('Error saving favorites:', error);
     }
   }
-  
+
   function addFavorite(location) {
     const favorites = getFavorites();
     const exists = favorites.find(fav => fav.lat === location.lat && fav.lon === location.lon);
@@ -10382,18 +10382,18 @@ function createSearchWindow() {
       saveFavorites(favorites);
     }
   }
-  
+
   function removeFavorite(lat, lon) {
     const favorites = getFavorites();
     const filtered = favorites.filter(fav => !(fav.lat === lat && fav.lon === lon));
     saveFavorites(filtered);
   }
-  
+
   function isFavorited(lat, lon) {
     const favorites = getFavorites();
     return favorites.some(fav => fav.lat === lat && fav.lon === lon);
   }
-  
+
   function updateFavoritesDisplay() {
     const filterInput = searchPanel.querySelector('#skirk-favorites-filter');
     const filterText = filterInput ? filterInput.value : '';
@@ -10402,23 +10402,23 @@ function createSearchWindow() {
     const favoritesMenu = searchPanel.querySelector('#skirk-favorites-menu');
     const favoritesCount = searchPanel.querySelector('#skirk-favorites-count');
     const favoritesList = searchPanel.querySelector('#skirk-favorites-list');
-    
+
     // Always show total number saved, not filtered count
     favoritesCount.textContent = allFavorites.length;
-    
+
     if (allFavorites.length > 0) {
       favoritesMenu.style.display = 'block';
       favoritesList.innerHTML = '';
-      
+
       if (favorites.length === 0) {
         favoritesList.innerHTML = '<div class="skirk-no-results">No favorites match your filter</div>';
         return;
       }
-      
+
       favorites.forEach(favorite => {
         const favoriteItem = document.createElement('div');
         favoriteItem.className = 'skirk-favorite-item';
-        
+
         favoriteItem.innerHTML = `
           <div class="skirk-result-content">
             <div class="skirk-result-name">${favorite.primaryName}</div>
@@ -10426,33 +10426,33 @@ function createSearchWindow() {
           </div>
           <span class="skirk-favorite-remove" title="Remove from favorites">×</span>
         `;
-        
+
         // Click to navigate
         favoriteItem.querySelector('.skirk-result-content').addEventListener('click', () => {
           navigateToLocation(favorite.lat, favorite.lon);
           searchPanel.style.display = 'none';
         });
-        
+
         // Click to remove
         favoriteItem.querySelector('.skirk-favorite-remove').addEventListener('click', (e) => {
           e.stopPropagation();
           removeFavorite(favorite.lat, favorite.lon);
         });
-        
+
         favoritesList.appendChild(favoriteItem);
       });
     } else {
       favoritesMenu.style.display = 'none';
     }
   }
-  
+
   // Clear all favorites
   searchPanel.querySelector('#skirk-clear-favorites').addEventListener('click', () => {
     if (confirm('Are you sure you want to clear all favorites?')) {
       saveFavorites([]);
     }
   });
-  
+
   // Favorites filter input
   const favoritesFilterInput = searchPanel.querySelector('#skirk-favorites-filter');
   if (favoritesFilterInput) {
@@ -10463,7 +10463,7 @@ function createSearchWindow() {
     };
     favoritesFilterInput.addEventListener('input', onFilterChange);
   }
-  
+
   // Initialize favorites display
   updateFavoritesDisplay();
 
@@ -10514,7 +10514,7 @@ function createSearchWindow() {
   const linkInput = locationModal.querySelector('#location-link');
   const latInput = locationModal.querySelector('#location-lat');
   const lonInput = locationModal.querySelector('#location-lon');
-  
+
   linkInput.addEventListener('input', () => {
     const link = linkInput.value.trim();
     if (!link) {
@@ -10522,15 +10522,15 @@ function createSearchWindow() {
       lonInput.value = '';
       return;
     }
-    
+
     // Extract lat and lng from wplace.live URL
     const latMatch = link.match(/lat=([^&]+)/);
     const lngMatch = link.match(/lng=([^&]+)/);
-    
+
     if (latMatch && lngMatch) {
       const lat = parseFloat(latMatch[1]);
       const lng = parseFloat(lngMatch[1]);
-      
+
       if (!isNaN(lat) && !isNaN(lng)) {
         latInput.value = lat.toString();
         lonInput.value = lng.toString();
@@ -10607,7 +10607,7 @@ function createSearchWindow() {
     favoritesCollapsed = !favoritesCollapsed;
     const toggle = searchPanel.querySelector('#skirk-favorites-toggle');
     const list = searchPanel.querySelector('#skirk-favorites-list');
-    
+
     if (favoritesCollapsed) {
       toggle.classList.add('collapsed');
       list.style.display = 'none';
@@ -10679,18 +10679,18 @@ function createSearchWindow() {
     dragOffsetY = clientY - dragOriginY;
   }
 
-  dragHandle.addEventListener("mousedown", function(e) {
+  dragHandle.addEventListener("mousedown", function (e) {
     e.preventDefault();
     startDrag(e.clientX, e.clientY);
   });
 
-  document.addEventListener("mousemove", function(e) {
+  document.addEventListener("mousemove", function (e) {
     if (isDragging) doDrag(e.clientX, e.clientY);
   }, { passive: true });
 
   document.addEventListener("mouseup", stopDrag);
 
-  dragHandle.addEventListener("touchstart", function(e) {
+  dragHandle.addEventListener("touchstart", function (e) {
     const touch = e?.touches?.[0];
     if (touch) {
       startDrag(touch.clientX, touch.clientY);
@@ -10698,7 +10698,7 @@ function createSearchWindow() {
     }
   }, { passive: false });
 
-  document.addEventListener("touchmove", function(e) {
+  document.addEventListener("touchmove", function (e) {
     if (isDragging) {
       const touch = e?.touches?.[0];
       if (!touch) return;
@@ -10722,7 +10722,7 @@ function createSearchWindow() {
         headers: {
           'User-Agent': 'BlueMarble-Search-UserScript/1.0'
         },
-        onload: function(response) {
+        onload: function (response) {
           try {
             const data = JSON.parse(response.responseText);
             resolve(data);
@@ -10731,7 +10731,7 @@ function createSearchWindow() {
             reject(error);
           }
         },
-        onerror: function(error) {
+        onerror: function (error) {
           console.error('Search API error:', error);
           reject(error);
         }
@@ -10741,20 +10741,20 @@ function createSearchWindow() {
 
   function navigateToLocation(lat, lon) {
     const navigationMethod = Settings.getNavigationMethod();
-    
+
     if (navigationMethod === 'openurl') {
-    const zoom = 13.62;
-    const url = `https://wplace.live/?lat=${lat}&lng=${lon}&zoom=${zoom}`;
-    
-    // Open in current tab (like the original)
-    window.location.href = url;
+      const zoom = 13.62;
+      const url = `https://wplace.live/?lat=${lat}&lng=${lon}&zoom=${zoom}`;
+
+      // Open in current tab (like the original)
+      window.location.href = url;
     } else {
       flyToLatLng(lat, lon);
     }
   }
 
   function displayResults(results) {
-    
+
     if (results.length === 0) {
       resultsContainer.innerHTML = '<div class="skirk-no-results">No results found</div>';
       return;
@@ -10762,12 +10762,12 @@ function createSearchWindow() {
 
     resultsContainer.innerHTML = '';
     results.forEach(result => {
-      
+
       // Try to access properties directly from the raw object
       const displayName = result['display_name'] || result['name'] || 'Unknown location';
       const lat = result['lat'];
       const lon = result['lon'];
-      
+
       const resultItem = document.createElement('div');
       resultItem.className = 'skirk-search-result';
 
@@ -10794,7 +10794,7 @@ function createSearchWindow() {
       resultItem.querySelector('.skirk-result-content').addEventListener('click', (e) => {
         const latStr = e.currentTarget.parentElement.dataset.lat;
         const lonStr = e.currentTarget.parentElement.dataset.lon;
-        
+
         if (latStr && lonStr && latStr !== 'undefined' && lonStr !== 'undefined') {
           navigateToLocation(latStr, lonStr);
           searchPanel.style.display = 'none';
@@ -10811,7 +10811,7 @@ function createSearchWindow() {
         e.stopPropagation();
         const star = e.target;
         const isFav = star.classList.contains('favorited');
-        
+
         if (isFav) {
           removeFavorite(lat, lon);
           star.classList.remove('favorited');
@@ -10858,14 +10858,14 @@ function createSearchWindow() {
   let searchTimeout;
   searchInput.addEventListener('input', () => {
     clearTimeout(searchTimeout);
-    
+
     const query = searchInput.value.trim();
     if (!query) {
       // Clear results when search is empty
       resultsContainer.innerHTML = '';
       return;
     }
-    
+
     searchTimeout = setTimeout(handleSearch, 500); // Debounce search
   });
 }
