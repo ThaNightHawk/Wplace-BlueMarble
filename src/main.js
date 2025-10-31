@@ -2984,8 +2984,8 @@ function showTemplateManageDialog(instance) {
             const navigationMethod = Settings.getNavigationMethod();
 
             if (navigationMethod === 'openurl') {
-              const zoom = 13.62;
-              const url = `https://wplace.live/?lat=${latLng.lat}&lng=${latLng.lng}&zoom=${zoom}`;
+              const zoom = 14.00;
+              const url = `https://place.hawk.quest/?lat=${latLng.lat}&lng=${latLng.lng}&zoom=${zoom}`;
               window.location.href = url;
             } else {
               flyToLatLng(latLng.lat, latLng.lng);
@@ -3630,8 +3630,8 @@ function buildOverlayMain() {
           const navigationMethod = Settings.getNavigationMethod();
 
           if (navigationMethod === 'openurl') {
-            const zoom = 13.62;
-            const url = `https://wplace.live/?lat=${lat}&lng=${lng}&zoom=${zoom}`;
+            const zoom = 14.00;
+            const url = `https://place.hawk.quest/?lat=${lat}&lng=${lng}&zoom=${zoom}`;
             window.location.href = url;
           } else {
             flyToLatLng(lat, lng);
@@ -10479,8 +10479,8 @@ function createSearchWindow() {
       </div>
       
       <div class="form-group">
-        <label for="location-link">Paste wplace.live link:</label>
-        <input type="text" id="location-link" placeholder="https://wplace.live/?lat=-19.037942104984218&lng=-42.420498378222675&zoom=16.078281108991245">
+        <label for="location-link">Paste place.hawk.quest link:</label>
+        <input type="text" id="location-link" placeholder="https://place.hawk.quest/?lat=-19.037942104984218&lng=-42.420498378222675&zoom=16.078281108991245">
       </div>
       
       <div class="form-group" style="display: flex; gap: 8px;">
@@ -10523,7 +10523,7 @@ function createSearchWindow() {
       return;
     }
 
-    // Extract lat and lng from wplace.live URL
+    // Extract lat and lng from place.hawk.quest URL
     const latMatch = link.match(/lat=([^&]+)/);
     const lngMatch = link.match(/lng=([^&]+)/);
 
@@ -10743,8 +10743,8 @@ function createSearchWindow() {
     const navigationMethod = Settings.getNavigationMethod();
 
     if (navigationMethod === 'openurl') {
-      const zoom = 13.62;
-      const url = `https://wplace.live/?lat=${lat}&lng=${lon}&zoom=${zoom}`;
+      const zoom = 14.00;
+      const url = `https://place.hawk.quest/?lat=${lat}&lng=${lon}&zoom=${zoom}`;
 
       // Open in current tab (like the original)
       window.location.href = url;

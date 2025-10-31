@@ -43,8 +43,6 @@ export default class ApiManager {
       if (!data['endpoint']) {return;}
 
       // Trims endpoint to the second to last non-number, non-null directoy.
-      // E.g. "wplace.live/api/pixel/0/0?payload" -> "pixel"
-      // E.g. "wplace.live/api/files/s0/tiles/0/0/0.png" -> "tiles"
       const endpointText = data['endpoint']?.split('?')[0].split('/').filter(s => s && isNaN(Number(s))).filter(s => s && !s.includes('.')).pop();
 
       // Each case is something that Blue Marble can use from the fetch.
@@ -152,7 +150,7 @@ export default class ApiManager {
             const idx = parts.lastIndexOf('tiles');
             if (idx > 0) {
               const base = parts.slice(0, idx + 1).join('/');
-              this.tileServerBase = base; // e.g., https://wplace.live/api/files/s0/tiles
+              this.tileServerBase = base;
             }
           } catch (_) {}
           

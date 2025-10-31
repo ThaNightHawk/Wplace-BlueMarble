@@ -155,7 +155,7 @@ export function canvasPosToLatLng(coordinates) {
 
 
 
-/** The color palette used by wplace.live
+/** The color palette used by place.hawk.quest
  * @since 0.78.0
  * @examples
  * import utils from 'src/utils.js';
