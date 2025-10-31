@@ -1248,12 +1248,6 @@ export default class TemplateManager {
     const validWhoami = ['SkirkMarble', 'BlueMarble', this.name?.replace(' ', '')].filter(Boolean);
     if (validWhoami.includes(json?.whoami)) {
       this.#parseBlueMarble(json); // ...parse the template object as Blue Marble
-    } else {
-      console.warn('❌ Not a valid BlueMarble JSON:', {
-        whoami: json?.whoami,
-        expected: validWhoami,
-        hasTemplates: !!json?.templates
-      });
     }
   }
 
